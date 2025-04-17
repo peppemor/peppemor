@@ -1,16 +1,10 @@
 import React from 'react';
 import { Trash2 } from 'lucide-react';
-import { CartItem } from '../types';
+import { useCart } from '../contexts/CartContext';
 
-interface CartProps {
-  cartItems: CartItem[];
-  setCartItems: React.Dispatch<React.SetStateAction<CartItem[]>>;
-}
 
-const Cart: React.FC<CartProps> = ({ cartItems, setCartItems }) => {
-  const removeFromCart = (itemId: string) => {
-    setCartItems(cartItems.filter(item => item.id !== itemId));
-  };
+const Cart: React.FC = () => {
+  const { cartItems, removeFromCart } = useCart();
 
   const total = cartItems.reduce((sum, item) => sum + item.price, 0);
 

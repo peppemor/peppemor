@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { Print, CartItem } from '../types';
+import { Print } from '../types';
 import { prints } from '../data/prints';
 import PrintModal from '../components/PrintModal';
+import { useCart } from '../contexts/CartContext';
 
-interface GalleryProps {
-  addToCart: (item: CartItem) => void;
-}
 
-const Gallery: React.FC<GalleryProps> = ({ addToCart }) => {
+
+const Gallery: React.FC = () => {
+  const { addToCart } = useCart();
   const [selectedPrint, setSelectedPrint] = useState<Print | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 

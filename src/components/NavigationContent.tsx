@@ -1,26 +1,16 @@
 import React, { useState } from 'react';
-import { Routes, Route, Link } from 'react-router-dom';
+import { Link, Outlet } from 'react-router-dom';
 import { Menu, X, LogOut, User, ShoppingCart } from 'lucide-react';
-import Home from '../pages/Home';
-import Gallery from '../pages/Gallery';
-import Contact from '../pages/Contact';
-import Cart from '../pages/Cart';
-import Account from '../pages/Account';
-import { CartItem } from '../types';
 import {  useAuth } from '../contexts/AuthContext';
-import PrivateRoute from './PrivateRoute';
-import { AuthForm } from '../pages/AuthForm';
 import PathConstants from '../routes/pathConstants';
+import { useCart } from '../contexts/CartContext';
 
 
 const NavigationContent: React.FC = () => {
-    const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
-    const [cartItems, setCartItems] = useState<CartItem[]>([]);
-    const { user, signOut } = useAuth();
-  
-    const addToCart = (item: CartItem) => {
-      setCartItems([...cartItems, item]);
-    };
+   const { cartItems } = useCart();
+
+    const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);    
+    const { user, signOut } = useAuth();    
   
     const handleSignOut = async () => {
       try {
@@ -133,26 +123,7 @@ const NavigationContent: React.FC = () => {
         </nav>
   
         <div className="pt-16">
-          <Routes>
-            <Route path={PathConstants.INDEX} element={<Home />} />
-            <Route path={PathConstants.GALLERY} element={<Gallery addToCart={addToCart} />} />
-            <Route path={PathConstants.CONTACT} element={<Contact />} />
-            <Route path={PathConstants.LOGIN} element={<AuthForm />} />
-            <Route 
-                path={PathConstants.ACCOUNT} 
-                element={
-                    <PrivateRoute>
-                        <Account />
-                    </PrivateRoute>
-                } />
-            <Route
-                path={PathConstants.CART}
-                element={
-                    <PrivateRoute>
-                      <Cart cartItems={cartItems} setCartItems={setCartItems} />
-                    </PrivateRoute>
-                } />
-          </Routes>
+          <Outlet />
         </div>
       </div>
     );

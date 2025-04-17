@@ -46,6 +46,13 @@ export interface AuthContextType {
   isEmailUnique: (email: string) => Promise<boolean>;
 }
 
+export interface CartContextType {
+ cartItems: CartItem[];
+ setCartItems: React.Dispatch<React.SetStateAction<CartItem[]>>;
+ addToCart: (item: CartItem) => void;
+ removeFromCart: (itemId: string) => void;
+}
+
 // Add ModalProps definition and export
 export interface ModalProps {
   print: {
