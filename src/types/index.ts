@@ -33,17 +33,17 @@ export interface User {
   firstName: string;
   lastName: string;
   username: string;
-  birthDate: string;
-  address: string;
   password: string;
 }
 
 export interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (userData: Omit<User, 'id'>) => Promise<void>;
-  signOut: () => void;
+  signIn: (email: string, password: string) => Promise<{ error: string | null }>
+  signUp: (userData: Omit<User, 'id'>) => Promise<{ data: { user: User | null }; error: string | null }>
+  signOut: () => void;  
+  isUsernameUnique: (username: string) => Promise<{ data: boolean; error: string | null }>;
+  isEmailUnique: (email: string) => Promise<boolean>;
 }
 
 // Add ModalProps definition and export
