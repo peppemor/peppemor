@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Mail, Lock } from 'lucide-react';
 
 import { supabase } from '../supabase/supabaseClients';
 import { useAuth } from '../contexts/AuthContext';
 import PathConstants from '../routes/pathConstants';
+import Input from '../components/ui/Input';
 
 type AuthMode = 'login' | 'register' | 'reset';
 
@@ -59,11 +60,12 @@ export function AuthForm() {
         }
 
         const { error: signUpError } = await signUp({
-          email: formData.email,
+            email: formData.email,
             password: formData.password,
-            firstName: formData.firstName,
-            lastName: formData.lastName,
+            first_name: formData.firstName,
+            last_name: formData.lastName,
             username: formData.username,
+            avatar_url: null,
         });
 
         if (signUpError) throw signUpError;
@@ -174,47 +176,48 @@ export function AuthForm() {
             </>
           )}
 
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email address
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            />
+          <div>           
+            <Input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                label="Email address"
+                icon={<Mail size={16} className="text-gray-500" />}
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              />            
           </div>
 
           {mode !== 'reset' && (
             <div className="relative">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <div className="mt-1 relative">
-                <input
+                <div className="relative">
+                  <Input
                   id="password"
                   name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
                   required
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  label="Password"
+                  icon={<Lock size={16} className="text-gray-500" />}
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                />
+                  />
+                </div>
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-[34px] text-gray-500 hover:text-gray-700 focus:outline-none"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5 text-gray-400" /> : <Eye className="h-5 w-5 text-gray-400" />}
+                  {showPassword ? (
+                    <EyeOff size={16} />
+                  ) : (
+                    <Eye size={16} />
+                  )}
                 </button>
               </div>
-            </div>
           )}
 
           <div>

@@ -30,20 +30,26 @@ export interface CartItem {
 export interface User {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  username: string;
   password: string;
+}
+
+export interface Profile {
+  id: string;
+  username: string;
+  first_name: string;
+  last_name: string;
+  avatar_url: string | null;
 }
 
 export interface AuthContextType {
   user: User | null;
-  loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: string | null }>
-  signUp: (userData: Omit<User, 'id'>) => Promise<{ data: { user: User | null }; error: string | null }>
-  signOut: () => void;  
+  profile: Profile | null;
+  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signUp: (userData: Omit<User, 'id'> & Omit<Profile, 'id'>) => Promise<{ data: { user: User | null }; error: string | null }>;
+  signOut: () => Promise<void>; 
   isUsernameUnique: (username: string) => Promise<{ data: boolean; error: string | null }>;
   isEmailUnique: (email: string) => Promise<boolean>;
+  updateProfile: (profileData: Partial<Profile>) => Promise<void>;
 }
 
 export interface CartContextType {

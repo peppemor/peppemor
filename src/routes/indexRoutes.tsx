@@ -8,7 +8,7 @@ import Account from '../pages/Account';
 import { AuthForm } from '../pages/AuthForm';
 import PrivateRoute from '../components/PrivateRoute';
 import PathConstants from './pathConstants';
-import NavigationContent from "../components/NavigationContent";
+import MainContent from "../components/MainContent";
 import NotFound from "../pages/NotFound";
 
 const routes = [
@@ -37,7 +37,7 @@ const routes = [
 const router = createBrowserRouter(
   [
     {
-      element: <NavigationContent/>,
+      element: <MainContent/>,
       children: routes.map((route) => ({
         ...route,
         element: (
