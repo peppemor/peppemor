@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { User, Camera, Check, X, Loader2 } from 'lucide-react';
-import { uploadAvatar, updateAvatar } from '../supabase/supabaseClients'
+
+import { uploadAvatar, updateAvatar } from '../services/profileService';
 import { useAuth } from '../contexts/AuthContext';
+
 import Avatar from '../components/ui/Avatar';
-import Input from  '../components/ui/Input';
+import Input from  '../components/ui/Input';  
 import Button from '../components/ui/Button';
 
 import toast from 'react-hot-toast';
