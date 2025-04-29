@@ -1,15 +1,53 @@
 
 import { supabase } from '../supabase/supabaseClients';
+import { Profile } from '../types'; // Assicurati di avere il tipo Profile definito correttamente
+
+export async function getProfileById(userId: string): Promise<Profile | null> {
+  const { data, error } = await supabase.rpc('get_my_uid');
+
+  if (error) {
+    console.error('Errore chiamando get_my_uid:', error);
+    return null;
+  } else {
+    console.log('auth.uid():', data); // 👈 confrontalo con il tuo path
+    // Assuming you need to fetch the profile using the userId
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (profileError) {
+      console.error('Error fetching profile:', profileError);
+      return null;
+    }
+
+    return profileData as Profile;
+  }
+}
 
 export async function uploadAvatar(file: File, userId: string): Promise<string | null> {
   const fileExt = file.name.split('.').pop();
-  const fileName = `${userId}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-  const filePath = `avatars/${fileName}`;
+  const fileName = `avatar-${userId}.${fileExt}`;
+  const filePath = `${userId}/${fileName}`;
+  /*
+  getProfileById(userId); // Assicurati di avere il profilo prima di procedere
 
+  const { data: userData } = await supabase.auth.getUser();
+  const userIdTest = userData?.user?.id;
+  
+  console.log("Uploading to path:", `${userIdTest}/${fileName}`); // Log del percorso di upload
+  
+  //deleteUserAvatar(userId); // Elimina l'avatar esistente prima di caricare il nuovo
+
+  */
   const { error } = await supabase.storage
     .from('avatars')
-    .upload(filePath, file);
-
+    .upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: true, // Modifica qui per sovrascrivere il file esistente
+    });
+    
   if (error) {
     console.error('Error uploading avatar:', error);
     return null;
@@ -37,5 +75,31 @@ export async function updateAvatar(userId: string, avatarUrl: string): Promise<b
     
     return true;
   }
+
+export async function deleteUserAvatar(userId: string): Promise<boolean> {
+    const { data: files, error: listError } = await supabase.storage
+      .from('avatars')
+      .list(userId); // elenca i file nella "cartella" dell'utente
+  
+    if (listError || !files || files.length === 0) {
+      console.warn('No avatar found or error listing files:', listError);
+      return false;
+    }
+  
+    const filePaths = files.map(file => `${userId}/${file.name}`);
+  
+    const { error: deleteError } = await supabase.storage
+      .from('avatars')
+      .remove(filePaths);
+  
+    if (deleteError) {
+      console.error('Error deleting avatar(s):', deleteError);
+      return false;
+    }
+  
+    console.log('Avatar(s) deleted successfully');
+    return true;
+  }
+  
 
  

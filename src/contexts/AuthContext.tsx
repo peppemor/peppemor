@@ -141,9 +141,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } 
   };
 
+  const updateAvatar = async (userId: string, avatarUrl: string): Promise<boolean> => {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ avatar_url: avatarUrl })
+      .eq('id', userId);
+    
+    if (error) {
+      console.error('Error updating avatar:', error);
+      return false;
+    }
+
+    // Update the local profile state
+    setProfile((prevProfile) => {
+      if (prevProfile) {
+        // Update the avatar_url in the profile state
+        avatarUrl = avatarUrl.replace(
+          'https://pernbjndcinuzldyhfam.supabase.co/storage/v1/object/public/avatars/',
+          ''
+        );
+        return { ...prevProfile, avatar_url: avatarUrl };
+      }
+      return null;  
+    }
+    );
+    
+    return true;
+  }
+
 
   return (
-    <AuthContext.Provider value={{ user, profile, signIn, signUp, signOut, isUsernameUnique, isEmailUnique, updateProfile }}>
+    <AuthContext.Provider value={{ user, profile, signIn, signUp, signOut, isUsernameUnique, isEmailUnique, updateProfile, updateAvatar }}>
       {children}
     </AuthContext.Provider>
   );

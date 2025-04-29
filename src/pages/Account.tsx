@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, Camera, Check, X, Loader2 } from 'lucide-react';
 
-import { uploadAvatar, updateAvatar } from '../services/profileService';
+import { uploadAvatar } from '../services/profileService';
 import { useAuth } from '../contexts/AuthContext';
 
 import Avatar from '../components/ui/Avatar';
@@ -58,7 +58,9 @@ const Account: React.FC = () => {
   };
   
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    console.log('Avatar change triggered');
+    const fileInput = e.target; // Salva il riferimento all'input
+    const file = fileInput.files?.[0];
     if (!file || !user) return;
     
     // Preview the image
@@ -69,7 +71,7 @@ const Account: React.FC = () => {
     try {
       const avatarUrl = await uploadAvatar(file, user.id);
       if (avatarUrl) {
-        await updateAvatar(user.id, avatarUrl);
+        //await updateAvatar(user.id, avatarUrl);
         await updateProfile({ avatar_url: avatarUrl });
         toast.success('Avatar updated successfully');
       } else {
@@ -80,8 +82,10 @@ const Account: React.FC = () => {
       console.error(error);
       // Revert to original avatar
       setPreviewAvatar(profile?.avatar_url || null);
+      fileInput.value = ''; // Reset the file input
     } finally {
-      setIsUpdatingAvatar(false);
+      // Fallback per garantire il reset
+     setTimeout(() => setIsUpdatingAvatar(false), 10);
     }
   };
   

@@ -50,6 +50,7 @@ export interface AuthContextType {
   isUsernameUnique: (username: string) => Promise<{ data: boolean; error: string | null }>;
   isEmailUnique: (email: string) => Promise<boolean>;
   updateProfile: (profileData: Partial<Profile>) => Promise<void>;
+  updateAvatar: (userId: string, avatarUrl: string) => Promise<boolean>;
 }
 
 export interface CartContextType {
