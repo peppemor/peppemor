@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { AuthContextType, User, Profile } from '../types';
 import { supabase } from '../supabase/supabaseClients';
 
@@ -7,30 +7,103 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [isLoading, setIsLoading] = useState(true); // Stato di caricamento
 
-  const isUsernameUnique = async (username: string): Promise<{ data: boolean; error: string | null }> => {
-    const { data, error } = await supabase
-      .rpc('is_username_available', { input_username: username });
+  useEffect(() => {
+    const checkAuth = async () => {
+      setIsLoading(true); // Imposta lo stato di caricamento
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user) {
+        const userLogged: User = {
+          id: user.id,
+          email: user.email || '',
+          password: '',
+        };
+        setUser(userLogged);
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        setProfile(profileData);
+      } else {
+        setUser(null);
+        setProfile(null);
+      }
+
+      setIsLoading(false); // Fine del caricamento
+    };
+
+    checkAuth();
+  }, []);
+
+  // Recupera sessione all'avvio
+  useEffect(() => {
+    const initSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (session?.user) {
+        const user: User = {
+          id: session.user.id,
+          email: session.user.email || '',
+          password: '',
+        };
+        setUser(user);
+
+        const { profile, error } = await fetchProfile(session.user.id);
+        if (!error && profile) {
+          setProfile(profile);
+        }
+      }
+    };
+
+    initSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        const user: User = {
+          id: session.user.id,
+          email: session.user.email || '',
+          password: '',
+        };
+        setUser(user);
+
+        fetchProfile(session.user.id).then(({ profile }) => {
+          if (profile) setProfile(profile);
+        });
+      } else {
+        setUser(null);
+        setProfile(null);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  // Funzioni
+  const isUsernameUnique = async (username: string) => {
+    const { data, error } = await supabase.rpc('is_username_available', {
+      input_username: username,
+    });
 
     return { data: !!data, error: error ? error.message : null };
   };
 
-  const isEmailUnique = async (email: string): Promise<boolean> => {
+  const isEmailUnique = async (email: string) => {
     const { data, error } = await supabase.rpc('is_email_available', {
       input_email: email,
     });
-  
-    if (error) {
-      console.error('Error checking email uniqueness:', error);
-      throw new Error('Unable to verify email uniqueness');
-    }
-  
-    return data; // true se disponibile, false se già usata
+
+    if (error) throw new Error('Unable to verify email uniqueness');
+    return data;
   };
-   
-  const signUp = async (userData: Omit<User, 'id'> & Omit<Profile, 'id'>): Promise<{ data: { user: User | null }; error: string | null }> => {
+
+  const signUp = async (userData: Omit<User, 'id'> & Omit<Profile, 'id'>) => {
     const { email, password, first_name, last_name, username } = userData;
-  
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -38,43 +111,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         data: { first_name, last_name },
       },
     });
-  
-    if (error) {
-      return { data: { user: null }, error: error.message };
-    }
-  
+
+    if (error) return { data: { user: null }, error: error.message };
+
     if (data.user) {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: data.user.id,
-          username,
-          full_name: `${first_name} ${last_name}`,
-          first_name,
-          last_name, 
-          avatar_url: null,
-        });
-  
-      if (profileError) {
-        return { data: { user: null }, error: profileError.message };
-      }
-  
-      // Do not set user or profile here; wait for signIn
-      return { data: { user: null }, error: null };
+      const { error: profileError } = await supabase.from('profiles').insert({
+        id: data.user.id,
+        username,
+        full_name: `${first_name} ${last_name}`,
+        first_name,
+        last_name,
+        avatar_url: null,
+      });
+
+      if (profileError) return { data: { user: null }, error: profileError.message };
     }
-  
-    return { data: { user: null }, error: 'Unknown error occurred during sign-up' };
+
+    return { data: { user: null }, error: null };
   };
 
-  const signIn = async (email: string, password: string): Promise<{ error: Error | null }> => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+  const signIn = async (email: string, password: string) => {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-    if (error) {
-      return { error };  
-    }
+    if (error) return { error };
 
     if (data.user) {
       const user: User = {
@@ -82,14 +141,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email: data.user.email || '',
         password,
       };
-
       setUser(user);
 
       const { profile, error: profileError } = await fetchProfile(data.user.id);
-      if (profileError) {
-        console.error('Error fetching profile:', profileError);
-        return { error: new Error(profileError) };
-      }
+      if (profileError) return { error: new Error(profileError) };
 
       setProfile(profile);
     }
@@ -103,28 +158,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setProfile(null);
   };
 
-  const fetchProfile = async (userId: string): Promise<{ profile: Profile | null; error: string | null }> => {
+  const fetchProfile = async (userId: string) => {
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .single();
 
-    if (error) {
-      return { profile: null, error: error.message };
-    }
-
-    return { profile: data, error: null };
+    return { profile: data, error: error?.message ?? null };
   };
 
   const updateProfile = async (updatedProfile: Partial<Profile>) => {
     if (!user) return;
 
-    if (!profile) {
-      console.error('Profile not found');
-      return;
-    } 
-    
     try {
       const { error } = await supabase
         .from('profiles')
@@ -133,45 +179,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
 
-      setProfile((prevProfile) =>
-        prevProfile ? { ...prevProfile, ...updatedProfile } : null
-      );
+      setProfile((prev) => (prev ? { ...prev, ...updatedProfile } : null));
     } catch (error: any) {
       console.error('Error updating profile:', error);
-    } 
+    }
   };
-
-  const updateAvatar = async (userId: string, avatarUrl: string): Promise<boolean> => {
-    const { error } = await supabase
-      .from('profiles')
-      .update({ avatar_url: avatarUrl })
-      .eq('id', userId);
-    
-    if (error) {
-      console.error('Error updating avatar:', error);
-      return false;
-    }
-
-    // Update the local profile state
-    setProfile((prevProfile) => {
-      if (prevProfile) {
-        // Update the avatar_url in the profile state
-        avatarUrl = avatarUrl.replace(
-          'https://pernbjndcinuzldyhfam.supabase.co/storage/v1/object/public/avatars/',
-          ''
-        );
-        return { ...prevProfile, avatar_url: avatarUrl };
-      }
-      return null;  
-    }
-    );
-    
-    return true;
-  }
 
 
   return (
-    <AuthContext.Provider value={{ user, profile, signIn, signUp, signOut, isUsernameUnique, isEmailUnique, updateProfile, updateAvatar }}>
+    <AuthContext.Provider value={{ user, profile, isLoading, signIn, signUp, signOut, isUsernameUnique, isEmailUnique, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

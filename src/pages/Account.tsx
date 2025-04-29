@@ -11,13 +11,20 @@ import Button from '../components/ui/Button';
 import toast from 'react-hot-toast';
 
 const Account: React.FC = () => {
-  const { user, profile, updateProfile, isUsernameUnique } = useAuth();
+  const { user, profile, isLoading, updateProfile, isUsernameUnique } = useAuth();
   const [username, setUsername] = useState(profile?.username || '');
   const [isUsernameAvailable, setIsUsernameAvailable] = useState<boolean | null>(null);
   const [isUpdatingUsername, setIsUpdatingUsername] = useState(false);
   const [isUpdatingAvatar, setIsUpdatingAvatar] = useState(false);
   const [previewAvatar, setPreviewAvatar] = useState<string | null>(profile?.avatar_url || null);
   
+  useEffect(() => {
+    if (!isLoading && !user) {
+      // Reindirizza alla pagina di autenticazione se l'utente non è autenticato
+      window.location.href = '/authform';
+    }
+  }, [isLoading, user]);
+
   useEffect(() => {
     if (profile) {
       setUsername(profile.username || '');
@@ -89,6 +96,14 @@ const Account: React.FC = () => {
     }
   };
   
+  if (isLoading) {
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="animate-spin text-gray-500" size={24} />
+      </div>
+    );
+  }
+
   if (!profile) {
     return (
       <div className="flex justify-center p-8">

@@ -44,13 +44,13 @@ export interface Profile {
 export interface AuthContextType {
   user: User | null;
   profile: Profile | null;
+  isLoading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (userData: Omit<User, 'id'> & Omit<Profile, 'id'>) => Promise<{ data: { user: User | null }; error: string | null }>;
   signOut: () => Promise<void>; 
   isUsernameUnique: (username: string) => Promise<{ data: boolean; error: string | null }>;
   isEmailUnique: (email: string) => Promise<boolean>;
   updateProfile: (profileData: Partial<Profile>) => Promise<void>;
-  updateAvatar: (userId: string, avatarUrl: string) => Promise<boolean>;
 }
 
 export interface CartContextType {
