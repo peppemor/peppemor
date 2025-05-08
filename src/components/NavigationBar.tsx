@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, LogOut, User, ShoppingCart, Camera} from 'lucide-react';
+import { Menu, X, LogOut, User, ShoppingCart, Camera, Settings} from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import PathConstants from '../routes/pathConstants';
 import { useCart } from '../contexts/CartContext';
@@ -96,6 +96,14 @@ const NavigationBar: React.FC = () => {
                       <User className="w-4 h-4 mr-2" />
                       <span>Account</span>
                     </Link>
+                    <Link
+                      to={PathConstants.ITINERARY_ADMIN}
+                      className="flex items-center w-full text-left px-4 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <Settings className="w-4 h-4 mr-2" />
+                      <span>Admin</span>
+                    </Link>
                     <button
                       onClick={() => {
                         handleSignOut();
@@ -161,6 +169,12 @@ const NavigationBar: React.FC = () => {
                   className="block px-3 py-2 text-gray-600 hover:text-gray-900"
                 >
                   Cart ({cartItems.length})
+                </Link>
+                <Link
+                  to={PathConstants.ACCOUNT}
+                  className="block px-3 py-2 text-gray-600 hover:text-gray-900"
+                >
+                  Account
                 </Link>
                 <button
                   onClick={handleSignOut}

@@ -9,8 +9,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [isLoading, setIsLoading] = useState(true); // Stato di caricamento
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null); // Riferimento al timer di timeout
+  const [isLoading, setIsLoading] = useState(true);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Funzione per terminare la sessione
   const terminateSession = async () => {
@@ -28,55 +28,81 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     timeoutRef.current = setTimeout(terminateSession, SESSION_TIMEOUT);
   };
 
+  // Funzione helper per recuperare utente e profilo
+  const fetchUserAndProfile = async (userId: string): Promise<{ user: User | null; profile: Profile | null }> => {
+    try {
+      // Recupera la flag is_admin
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('is_admin')
+        .eq('id', userId)
+        .single();
+
+      if (roleError) {
+        console.error('Error fetching user role:', roleError);
+        return { user: null, profile: null };
+      }
+
+      // Recupera il profilo
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+        return { user: null, profile: null };
+      }
+
+      const user: User = {
+        id: userId,
+        email: '', // L'email può essere aggiunta se necessaria
+        password: '',
+        is_admin: roleData?.is_admin || false,
+      };
+
+      return { user, profile: profileData };
+    } catch (error) {
+      console.error('Unexpected error fetching user and profile:', error);
+      return { user: null, profile: null };
+    }
+  };
+
+  // Funzione per gestire lo stato di autenticazione
+  const handleAuthStateChange = async (session: any) => {
+    if (session?.user) {
+      const { user, profile } = await fetchUserAndProfile(session.user.id);
+
+      if (user) {
+        setUser(user);
+        setProfile(profile);
+        resetSessionTimeout();
+      } else {
+        setUser(null);
+        setProfile(null);
+      }
+    } else {
+      setUser(null);
+      setProfile(null);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    }
+  };
+
   // Inizializza la sessione al login
   useEffect(() => {
     const initSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-
-      if (session?.user) {
-        const user: User = {
-          id: session.user.id,
-          email: session.user.email || '',
-          password: '',
-          is_admin: false
-        };
-        setUser(user);
-
-        const { profile, error } = await fetchProfile(session.user.id);
-        if (!error && profile) {
-          setProfile(profile);
-        }
-
-        // Avvia il timer di inattività
-        resetSessionTimeout();
-      }
+      await handleAuthStateChange(session);
+      setIsLoading(false);
     };
 
     initSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        const user: User = {
-          id: session.user.id,
-          email: session.user.email || '',
-          password: '',
-          is_admin: false
-        };
-        setUser(user);
-
-        fetchProfile(session.user.id).then(({ profile }) => {
-          if (profile) setProfile(profile);
-        });
-
-        // Reimposta il timer di inattività
-        resetSessionTimeout();
-      } else {
-        setUser(null);
-        setProfile(null);
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-        }
-      }
+      handleAuthStateChange(session);
     });
 
     return () => {
@@ -100,37 +126,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      setIsLoading(true); // Imposta lo stato di caricamento
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (user) {
-        const userLogged: User = {
-          id: user.id,
-          email: user.email || '',
-          password: '',
-          is_admin: false
-        };
-        setUser(userLogged);
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-        setProfile(profileData);
-      } else {
-        setUser(null);
-        setProfile(null);
-      }
-
-      setIsLoading(false); // Fine del caricamento
-    };
-
-    checkAuth();
-  }, []);
-
-  // Funzioni
+  // Funzioni di utilità
   const isUsernameUnique = async (username: string) => {
     const { data, error } = await supabase.rpc('is_username_available', {
       input_username: username,
@@ -183,18 +179,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (error) return { error };
 
     if (data.user) {
-      const user: User = {
-        id: data.user.id,
-        email: data.user.email || '',
-        password,
-        is_admin: false,
-      };
-      setUser(user);
+      const { user, profile } = await fetchUserAndProfile(data.user.id);
 
-      const { profile, error: profileError } = await fetchProfile(data.user.id);
-      if (profileError) return { error: new Error(profileError) };
-
-      setProfile(profile);
+      if (user) {
+        setUser(user);
+        setProfile(profile);
+      }
     }
 
     return { error: null };
@@ -223,7 +213,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           error: 'Session is null',
         };
       }
-
+  
       return {
         data: { session: { access_token: session.access_token } },
         error: null,
@@ -236,37 +226,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
     }
   };
-
-  const fetchProfile = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-
-    return { profile: data, error: error?.message ?? null };
-  };
-
+  
+  
   const updateProfile = async (updatedProfile: Partial<Profile>) => {
     if (!user) return;
-
+  
     try {
       const { error } = await supabase
         .from('profiles')
         .update(updatedProfile)
         .eq('id', user.id);
-
+  
       if (error) throw error;
-
+  
       setProfile((prev) => (prev ? { ...prev, ...updatedProfile } : null));
     } catch (error: any) {
       console.error('Error updating profile:', error);
     }
   };
 
-
   return (
-    <AuthContext.Provider value={{ user, profile, isLoading, signIn, signUp, signOut, getUserSession, isUsernameUnique, isEmailUnique, updateProfile }}>
+    <AuthContext.Provider value={{ user, profile, isLoading, signIn, signUp, signOut, getUserSession, isUsernameUnique, isEmailUnique,updateProfile }}>
       {children}
     </AuthContext.Provider>
   );
@@ -280,3 +260,8 @@ export const useAuth = () => {
 
   return context;
 };
+
+
+
+
+
