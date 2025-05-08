@@ -1,0 +1,137 @@
+import React, { useEffect, useState, useRef } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { ArrowLeft, MapPin, Clock, BarChart3 } from 'lucide-react';
+import itineraries from '../data/itineraries';
+import ItineraryMapView from '../components/itinerary/ItineraryMapView';
+import PointOfInterestCard from '../components/itinerary/PointOfInterestCard';
+import PathConstants from '../routes/pathConstants';
+
+const ItineraryDetail: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const itinerary = itineraries.find(item => item.id === id);
+  
+  const [activePointId, setActivePointId] = useState<string | null>(null);
+  const pointRefs = useRef<Record<string, React.RefObject<HTMLDivElement>>>({});
+  
+  // Initialize refs for each point of interest
+  useEffect(() => {
+    if (itinerary) {
+      itinerary.pointsOfInterest.forEach(point => {
+        pointRefs.current[point.id] = React.createRef<HTMLDivElement>();
+      });
+      
+      // Set the first point as active by default
+      if (itinerary.pointsOfInterest.length > 0) {
+        setActivePointId(itinerary.pointsOfInterest[0].id);
+      }
+    }
+  }, [itinerary]);
+  
+  const handlePointClick = (pointId: string) => {
+    setActivePointId(pointId);
+    
+    // Scroll to the corresponding point of interest card
+    const ref = pointRefs.current[pointId];
+    if (ref && ref.current) {
+      ref.current.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'center' 
+      });
+    }
+  };
+  
+  if (!itinerary) {
+    return (
+      <div className="container mx-auto px-4 py-12 text-center">
+        <h2 className="text-2xl font-bold mb-4">Itinerario non trovato</h2>
+        <p className="mb-6">L'itinerario che stai cercando non esiste o è stato rimosso.</p>
+        <Link 
+          to={PathConstants.ITINERARY_LIST}
+          className="inline-flex items-center gap-2 text-amber-700 hover:text-amber-800"
+        >
+          <ArrowLeft size={16} />
+          <span>Torna alla lista degli itinerari</span>
+        </Link>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-8">
+        <Link 
+          to={PathConstants.ITINERARY_LIST}
+          className="inline-flex items-center gap-2 text-amber-700 hover:text-amber-800 mb-6"
+        >
+          <ArrowLeft size={16} />
+          <span>Torna alla lista degli itinerari</span>
+        </Link>
+        
+        <div className="relative h-64 md:h-96 rounded-xl overflow-hidden mb-6">
+          <img 
+            src={itinerary.coverImage} 
+            alt={itinerary.title} 
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+          <div className="absolute bottom-0 left-0 p-6 text-white">
+            <h1 className="font-serif text-3xl md:text-4xl font-bold mb-2">{itinerary.title}</h1>
+            <p className="text-lg text-gray-100">{itinerary.shortDescription}</p>
+          </div>
+        </div>
+        
+        <div className="flex flex-wrap gap-6 text-sm text-gray-600 mb-8">
+          <div className="flex items-center gap-1">
+            <MapPin size={18} />
+            <span>{itinerary.distance} km</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Clock size={18} />
+            <span>{itinerary.estimatedTime}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <BarChart3 size={18} />
+            <span>{itinerary.pointsOfInterest.length} punti di interesse</span>
+          </div>
+          <div className="bg-gray-100 px-3 py-1 rounded-full">
+            Difficoltà: <span className="font-medium">{itinerary.difficulty}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-5 gap-8">
+        {/* Colonna sinistra: Descrizione e punti di interesse */}
+        <div className="col-span-3">
+          <div className="mb-8">
+            <h2 className="font-serif text-2xl font-bold text-gray-800 mb-4">Descrizione</h2>
+            <p className="text-gray-600">{itinerary.fullDescription}</p>
+          </div>
+
+          <div>
+            <h2 className="font-serif text-2xl font-bold text-gray-800 mb-6">Punti di interesse</h2>
+            {itinerary.pointsOfInterest.map((point) => (
+              <PointOfInterestCard 
+                key={point.id}
+                ref={pointRefs.current[point.id]}
+                point={point}
+                isActive={activePointId === point.id}
+                onClick={() => handlePointClick(point.id)}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Colonna destra: Mappa */}
+        <div className="col-span-2 lg:sticky lg:top-24 h-[600px] w-full">
+          <ItineraryMapView 
+            points={itinerary.pointsOfInterest}
+            distance={itinerary.distance}
+            onPointClick={handlePointClick}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ItineraryDetail;

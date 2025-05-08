@@ -47,6 +47,13 @@ const NavigationBar: React.FC = () => {
               Gallery
             </Link>
             <Link
+              to={PathConstants.ITINERARY_LIST}
+              className="text-gray-600 hover:text-gray-900"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Itinerari
+            </Link>
+            <Link
               to={PathConstants.CONTACT}
               className="text-gray-600 hover:text-gray-900"
               onClick={() => setIsMenuOpen(false)}

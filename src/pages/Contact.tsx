@@ -1,10 +1,95 @@
+import { useEffect, useState } from 'react';
 import { Instagram, Facebook, MessageCircle } from 'lucide-react';
+import Button from '../components/ui/Button';
+import { useAuth } from '../contexts/AuthContext';
+import toast from 'react-hot-toast';
 
-function Contact() {
+const Contact: React.FC = () => {
+  const { user, profile } = useAuth();  
+  const [name, setName] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
+  const [message, setMessage] = useState<string>('');
+
+  const { getUserSession } = useAuth();
+
+  useEffect(() => {
+    if (profile) {
+      setName(`${profile.first_name} ${profile.last_name}`);
+      setEmail(user?.email || '');
+    }
+  }, [profile, user]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+  
+    try {
+      // Ottieni il token JWT dall'utente autenticato
+      
+      const session = await getUserSession();
+      const token = session?.data?.session?.access_token;
+
+      if (!token) {
+        throw new Error('User is not authenticated');
+      }
+  
+      // Effettua una richiesta POST al tuo endpoint Supabase
+      const response = await fetch('https://pernbjndcinuzldyhfam.supabase.co/functions/v1/send-contact-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`, // Includi il token JWT
+        },
+        body: JSON.stringify({
+          from: email, // Usa l'email inserita dall'utente come mittente
+          subject: `New message from ${name}`, // Oggetto dell'email
+          html: `
+            <h1>New Contact Message</h1>
+            <p><strong>Name:</strong> ${name}</p>
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Message:</strong></p>
+            <p>${message}</p>
+          `, // Corpo HTML dell'email
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+  
+      const data = await response.json();
+      console.log('Email sent successfully:', data);
+  
+      toast.success('Message sent successfully!');
+      setName('');
+      setEmail('');
+      setMessage('');
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast.error('Failed to send message. Please try again.');
+    }
+  };
+
+  // Handle input changes
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setName(e.target.value);
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value); 
+  };
+
+  const handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setMessage(e.target.value); 
+  };
+
   return (
-    <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
+    <div className="container mx-auto px-4 py-12">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8 text-center">Get in Touch</h1>
+      <section className="mb-12 text-center">
+        <h1 className="font-serif md:text-3xl font-bold text-gray-800 mb-4">
+          Get in Touch
+        </h1>
+      </section>
         
         <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
           <p className="text-gray-600 mb-6 text-center">
@@ -48,37 +133,52 @@ function Contact() {
 
         <div className="bg-white rounded-lg shadow-lg p-8">
           <h2 className="text-2xl font-semibold mb-6">Send a Message</h2>
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
+              <label htmlFor="name" className="block text-md font-medium text-gray-700">Name</label>
               <input
-                type="text"
-                id="name"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              value={name}
+              onChange={(e) => handleNameChange(e)}
+              placeholder="Your Name"
+              autoComplete="name"
+              autoCapitalize="words"
+              autoCorrect="off"
+              spellCheck="false"
+              type="text"
+              id="name"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+              <label htmlFor="email" className="block text-md font-medium text-gray-700">Email</label>
               <input
+                value={email}
+                onChange={(e) => handleEmailChange(e)}
+                placeholder="Your Email"
                 type="email"
                 id="email"
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label htmlFor="message" className="block text-sm font-medium text-gray-700">Message</label>
+              <label htmlFor="message" className="block text-md font-medium text-gray-700">Message</label>
               <textarea
+                value={message}
+                onChange={(e) => handleMessageChange(e)}
+                placeholder="Your Message"
+                autoComplete="off"
                 id="message"
                 rows={4}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               ></textarea>
             </div>
-            <button
+            <Button
+              disabled={!name || !email || !message} 
               type="submit"
               className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
               Send Message
-            </button>
+            </Button>
           </form>
         </div>
       </div>

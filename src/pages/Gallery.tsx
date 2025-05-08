@@ -22,8 +22,12 @@ const Gallery: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
-      <h1 className="text-3xl font-bold mb-8">Gallery</h1>
+    <div className="container mx-auto px-4 py-12">
+      <section className="mb-12 text-center">
+      <h1 className="font-serif md:text-3xl font-bold text-gray-800 mb-4">
+          Gallery
+        </h1>
+      </section>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {prints.map((print) => (
           <div 

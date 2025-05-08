@@ -66,6 +66,7 @@ export function AuthForm() {
             last_name: formData.lastName,
             username: formData.username,
             avatar_url: null,
+            is_admin: false, // Default value for is_admin
         });
 
         if (signUpError) throw signUpError;

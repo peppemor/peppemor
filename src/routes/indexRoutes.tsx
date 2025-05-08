@@ -11,16 +11,44 @@ import PathConstants from './pathConstants';
 import MainContent from "../components/MainContent";
 import NotFound from "../pages/NotFound";
 
+import ItinerariesList from "../pages/ItinerariesList";
+import ItineraryDetail from "../pages/ItineraryDetail";
+import ItinerariesAdmin from "../pages/ItinerariesAdmin";
+
 const routes = [
     { path: PathConstants.INDEX, element: <Home /> },
     { path: PathConstants.GALLERY, element: <Gallery /> },
     { path: PathConstants.CONTACT, element: <Contact /> },
+    {
+      path: PathConstants.ITINERARY_LIST,
+      element: (
+        <PrivateRoute>
+          <ItinerariesList />
+        </PrivateRoute>
+      ),
+    },
+    {
+      path: PathConstants.ITINERARY_DETAILS,
+      element: (
+        <PrivateRoute>
+          <ItineraryDetail />
+        </PrivateRoute>
+      ),
+    },
     { path: PathConstants.LOGIN, element: <AuthForm /> },
     {
       path: PathConstants.ACCOUNT,
       element: (
         <PrivateRoute>
           <Account />
+        </PrivateRoute>
+      ),
+    },
+    {
+      path: PathConstants.ITINERARY_ADMIN,
+      element: (
+        <PrivateRoute>
+          <ItinerariesAdmin />
         </PrivateRoute>
       ),
     },

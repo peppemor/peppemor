@@ -6,6 +6,9 @@ interface PathConstantsType {
     LOGIN: string;
     CART: string;
     ACCOUNT: string;
+    ITINERARY_LIST: string;
+    ITINERARY_DETAILS: string;
+    ITINERARY_ADMIN: string;
   }
   
   const PathConstants: PathConstantsType = {
@@ -16,6 +19,9 @@ interface PathConstantsType {
     LOGIN: "/authform",
     CART: "/cart",
     ACCOUNT: "/account",
+    ITINERARY_LIST: "/itineraries",
+    ITINERARY_DETAILS: "/itineraries/:id",
+    ITINERARY_ADMIN: "/itinerariesadmin",
   };
   
   export default PathConstants;
