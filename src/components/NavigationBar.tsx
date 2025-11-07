@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X, LogOut, User, ShoppingCart, Camera, Settings} from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useAuthActions } from '../hooks/useAuthService';
 import PathConstants from '../routes/pathConstants';
 import { useCart } from '../contexts/CartContext';
 import Avatar from './ui/Avatar';
@@ -9,7 +10,10 @@ import Avatar from './ui/Avatar';
 const NavigationBar: React.FC = () => {
   const { cartItems } = useCart();
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
-  const { user, profile, signOut } = useAuth();
+  
+  // Separazione: stato dal Context, operazioni dagli hooks
+  const { user, profile } = useAuth(); // Solo stato
+  const { signOut } = useAuthActions(); // Solo operazioni
 
   const handleSignOut = async () => {
     try {

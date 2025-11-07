@@ -2,15 +2,17 @@ import { useEffect, useState } from 'react';
 import { Instagram, Facebook, MessageCircle } from 'lucide-react';
 import Button from '../components/ui/Button';
 import { useAuth } from '../contexts/AuthContext';
+import { useAuthActions } from '../hooks/useAuthService';
 import toast from 'react-hot-toast';
 
 const Contact: React.FC = () => {
-  const { user, profile } = useAuth();  
+  // Separazione: stato dal Context, operazioni dagli hooks
+  const { user, profile } = useAuth(); // Solo stato
+  const { getUserSession } = useAuthActions(); // Solo operazioni
+  
   const [name, setName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [message, setMessage] = useState<string>('');
-
-  const { getUserSession } = useAuth();
 
   useEffect(() => {
     if (profile) {

@@ -3,6 +3,7 @@ import { User, Camera, Check, X, Loader2 } from 'lucide-react';
 
 import { uploadAvatar } from '../services/profileService';
 import { useAuth } from '../contexts/AuthContext';
+import { useAuthActions } from '../hooks/useAuthService';
 
 import Avatar from '../components/ui/Avatar';
 import Input from  '../components/ui/Input';  
@@ -11,7 +12,10 @@ import Button from '../components/ui/Button';
 import toast from 'react-hot-toast';
 
 const Account: React.FC = () => {
-  const { user, profile, isLoading, updateProfile, isUsernameUnique } = useAuth();
+  // Separazione: stato dal Context, operazioni dagli hooks
+  const { user, profile, isLoading } = useAuth(); // Solo stato
+  const { updateProfile, isUsernameUnique } = useAuthActions(); // Solo operazioni
+  
   const [username, setUsername] = useState(profile?.username || '');
   const [isUsernameAvailable, setIsUsernameAvailable] = useState<boolean | null>(null);
   const [isUpdatingUsername, setIsUpdatingUsername] = useState(false);
@@ -54,7 +58,10 @@ const Account: React.FC = () => {
     
     setIsUpdatingUsername(true);
     try {
-      await updateProfile({ username });
+      const { error } = await updateProfile({ username });
+      if (error) {
+        throw new Error(error);
+      }
       toast.success('Username updated successfully');
     } catch (error) {
       toast.error('Failed to update username');
@@ -63,7 +70,7 @@ const Account: React.FC = () => {
       setIsUpdatingUsername(false);
     }
   };
-  
+
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     console.log('Avatar change triggered');
     const fileInput = e.target; // Salva il riferimento all'input
@@ -78,8 +85,10 @@ const Account: React.FC = () => {
     try {
       const avatarUrl = await uploadAvatar(file, user.id);
       if (avatarUrl) {
-        //await updateAvatar(user.id, avatarUrl);
-        await updateProfile({ avatar_url: avatarUrl });
+        const { error } = await updateProfile({ avatar_url: avatarUrl });
+        if (error) {
+          throw new Error(error);
+        }
         toast.success('Avatar updated successfully');
       } else {
         throw new Error('Failed to upload avatar');
@@ -94,9 +103,7 @@ const Account: React.FC = () => {
       // Fallback per garantire il reset
      setTimeout(() => setIsUpdatingAvatar(false), 10);
     }
-  };
-  
-  if (isLoading) {
+  };  if (isLoading) {
     return (
       <div className="flex justify-center p-8">
         <Loader2 className="animate-spin text-gray-500" size={24} />

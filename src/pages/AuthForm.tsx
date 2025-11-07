@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Loader2, Mail, Lock } from 'lucide-react';
 
-import { supabase } from '../supabase/supabaseClients';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuthActions } from '../hooks/useAuthService';
 import PathConstants from '../routes/pathConstants';
 import Input from '../components/ui/Input';
 
@@ -25,7 +24,8 @@ export function AuthForm() {
     lastName: '',
   });
 
-  const { signIn, signUp, isUsernameUnique, isEmailUnique } = useAuth();
+  // Solo operazioni di autenticazione
+  const { resetPassword, signIn, signUp, isUsernameUnique, isEmailUnique } = useAuthActions();
   
     // Reset error when mode changes
     useEffect(() => {
@@ -65,11 +65,9 @@ export function AuthForm() {
             first_name: formData.firstName,
             last_name: formData.lastName,
             username: formData.username,
-            avatar_url: null,
-            is_admin: false, // Default value for is_admin
         });
 
-        if (signUpError) throw signUpError;
+        if (signUpError) throw new Error(signUpError);
 
         setMode('login');
         alert('Account created successfully! Please log in.');
@@ -84,9 +82,8 @@ export function AuthForm() {
         navigate(PathConstants.INDEX);
 
       } else if (mode === 'reset') {
-        const { error: resetError } = await supabase.auth.resetPasswordForEmail(
-          formData.email
-        );
+        const { error: resetError } = await resetPassword(formData.email);
+        
         if (resetError) throw resetError;
         alert('Password reset instructions sent to your email');
         setMode('login');

@@ -1,6 +1,10 @@
 
 import { supabase } from '../supabase/supabaseClients';
-import { Profile } from '../types'; // Assicurati di avere il tipo Profile definito correttamente
+import { Database } from '../types/supabase';
+
+type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
+type Profile = Database['public']['Tables']['profiles']['Row'];
+
 
 export async function getProfileById(userId: string): Promise<Profile | null> {
   const { data, error } = await supabase.rpc('get_my_uid');
@@ -30,17 +34,7 @@ export async function uploadAvatar(file: File, userId: string): Promise<string |
   const fileExt = file.name.split('.').pop();
   const fileName = `avatar-${userId}.${fileExt}`;
   const filePath = `${userId}/${fileName}`;
-  /*
-  getProfileById(userId); // Assicurati di avere il profilo prima di procedere
-
-  const { data: userData } = await supabase.auth.getUser();
-  const userIdTest = userData?.user?.id;
   
-  console.log("Uploading to path:", `${userIdTest}/${fileName}`); // Log del percorso di upload
-  
-  //deleteUserAvatar(userId); // Elimina l'avatar esistente prima di caricare il nuovo
-
-  */
   const { error } = await supabase.storage
     .from('avatars')
     .upload(filePath, file, {
@@ -63,9 +57,11 @@ export async function uploadAvatar(file: File, userId: string): Promise<string |
 }
   
 export async function updateAvatar(userId: string, avatarUrl: string): Promise<boolean> {
+    const updateData: ProfileUpdate = { avatar_url: avatarUrl};
+    
     const { error } = await supabase
       .from('profiles')
-      .update({ avatar_url: avatarUrl })
+      .update(updateData)
       .eq('id', userId);
     
     if (error) {
@@ -74,7 +70,7 @@ export async function updateAvatar(userId: string, avatarUrl: string): Promise<b
     }
     
     return true;
-  }
+}
 
 export async function deleteUserAvatar(userId: string): Promise<boolean> {
     const { data: files, error: listError } = await supabase.storage
