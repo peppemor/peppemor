@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User, Camera, Check, X, Loader2 } from 'lucide-react';
 
 import { useAuth } from '../contexts/AuthContext';
-import { useAuthActions } from '../hooks/useAuthService';
-import { useProfileActions } from '../hooks/useProfileService';
+import { useAuthActions, useProfileActions } from '../hooks';
 
 import Avatar from '../components/ui/Avatar';
 import Input from  '../components/ui/Input';  

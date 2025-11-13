@@ -1,9 +1,11 @@
+import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import { ProfileService } from '../services';
 import { useAuth } from '../contexts/AuthContext';
+import { useMemo } from 'react';
 
 export const useProfileService = () => {
-  const profileService = new ProfileService();
-  return profileService;
+  const supabase = useSupabaseClient();
+  return useMemo(() => new ProfileService(supabase), [supabase]);
 };
 
 export const useProfileActions = () => {

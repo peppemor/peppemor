@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Instagram, Facebook, MessageCircle } from 'lucide-react';
 import Button from '../components/ui/Button';
 import { useAuth } from '../contexts/AuthContext';
-import { useAuthActions } from '../hooks/useAuthService';
+import { useAuthActions } from '../hooks';
 import toast from 'react-hot-toast';
 
 const Contact: React.FC = () => {

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Loader2, Mail, Lock } from 'lucide-react';
 
-import { useAuthActions } from '../hooks/useAuthService';
+import { useAuthActions } from '../hooks';
 import PathConstants from '../routes/pathConstants';
 import Input from '../components/ui/Input';
 

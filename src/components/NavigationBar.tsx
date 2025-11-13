@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X, LogOut, User, ShoppingCart, Camera, Settings} from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { useAuthActions } from '../hooks/useAuthService';
+import { useAuthActions } from '../hooks';
 import PathConstants from '../routes/pathConstants';
 import { useCart } from '../contexts/CartContext';
 import Avatar from './ui/Avatar';

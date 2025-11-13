@@ -1,15 +1,14 @@
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import type { Database } from '../types/supabase';
 
 type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
 export class ProfileService {
-  private supabase;
+  private supabase: any;
 
-  constructor() {
-    this.supabase = createClientComponentClient<Database>();
+  constructor(supabaseClient: any) {
+    this.supabase = supabaseClient;
   }
 
   // Ottenere profilo per ID
@@ -95,7 +94,7 @@ export class ProfileService {
         return { success: false, error: 'No avatar found to delete' };
       }
     
-      const filePaths = files.map(file => `${userId}/${file.name}`);
+      const filePaths = files.map((file: any) => `${userId}/${file.name}`);
     
       const { error: deleteError } = await this.supabase.storage
         .from('avatars')

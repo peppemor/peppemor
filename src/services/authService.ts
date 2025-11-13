@@ -1,4 +1,4 @@
-import { SupabaseClient } from '@supabase/auth-helpers-nextjs';
+import { SupabaseClient } from '@supabase/supabase-js';
 import { User } from '@supabase/auth-helpers-react';
 import type { Database } from '../types/supabase';
 import { Profile, UserRole } from '../types';
