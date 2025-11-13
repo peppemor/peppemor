@@ -1,6 +1,7 @@
-import { SupabaseClient, User as SupabaseUser } from '@supabase/supabase-js';
-import { Database } from '../types/supabase';
-import { User, Profile, UserRole } from '../types';
+import { SupabaseClient } from '@supabase/auth-helpers-nextjs';
+import { User } from '@supabase/auth-helpers-react';
+import type { Database } from '../types/supabase';
+import { Profile, UserRole } from '../types';
 
 type SupabaseClientType = SupabaseClient<Database>;
 
@@ -33,19 +34,9 @@ export class AuthService {
     return { data, error };
   }
 
-  // Combina i dati di Supabase User con Profile e UserRole per creare il nostro User
-  async buildUserData(supabaseUser: SupabaseUser): Promise<{ user: User | null; profile: Profile | null }> {
+  // Combina i dati di Supabase User con Profile per l'applicazione
+  async buildUserData(supabaseUser: User): Promise<{ user: User | null; profile: Profile | null }> {
     try {
-      // Recupera i ruoli
-      const { data: roleData, error: roleError } = await this.getUserRole(supabaseUser.id);
-      
-      let isAdmin = false;
-      if (!roleError && roleData) {
-        isAdmin = Boolean(roleData.is_admin);
-      } else if (roleError) {
-        console.error('Error fetching user role:', roleError);
-      }
-
       // Recupera il profilo
       const { data: profileData, error: profileError } = await this.getUserProfile(supabaseUser.id);
 
@@ -53,16 +44,8 @@ export class AuthService {
         console.error('Error fetching profile:', profileError);
       }
 
-      // Crea l'oggetto User personalizzato
-      const userData: User = {
-        id: supabaseUser.id,
-        email: supabaseUser.email || '',
-        password: '', // Non necessario con Supabase auth
-        is_admin: isAdmin,
-      };
-
       return { 
-        user: userData, 
+        user: supabaseUser,  // Usa direttamente l'User di Supabase
         profile: profileData 
       };
     } catch (error) {

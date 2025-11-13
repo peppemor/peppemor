@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { useUser, useSupabaseClient, User as SupabaseUser } from '@supabase/auth-helpers-react';
-import { User, Profile } from '../types';
+import { useUser, useSupabaseClient, User } from '@supabase/auth-helpers-react';
+import { Profile } from '../types';
 import { AuthService } from '../services';
 
 interface AuthContextType {
@@ -8,7 +8,7 @@ interface AuthContextType {
   user: User | null;
   profile: Profile | null;
   isLoading: boolean;
-  supabaseUser: SupabaseUser | null;
+  supabaseUser: User | null;
   // Metodi essenziali per gestire lo stato
   refreshUserData: () => Promise<void>;
 }
@@ -25,7 +25,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const authService = useMemo(() => new AuthService(supabase), [supabase]);
 
-  const fetchUserData = async (supabaseUser: SupabaseUser): Promise<void> => {
+  const fetchUserData = async (supabaseUser: User): Promise<void> => {
     if (!supabaseUser) {
       setUser(null);
       setProfile(null);

@@ -107,22 +107,6 @@ export type Profile = Database['public']['Tables']['profiles']['Row'];
  */
 export type UserRole = Database['public']['Tables']['user_roles']['Row'];
 
-/**
- * Utente dall'autenticazione Supabase
- * Tipo derivato dalla tabella 'users' nello schema 'auth' di Supabase
- * Contiene: id, email, email_confirmed_at, etc.
- */
-export type SupabaseAuthUser = Database['auth']['Tables']['users']['Row'];
-
-/**
- * Tipo User personalizzato per l'applicazione
- * Combina dati di autenticazione Supabase con campi aggiuntivi necessari al frontend
- */
-export interface User extends Pick<SupabaseAuthUser, 'id' | 'email'> {
-  password: string;  // Campo aggiuntivo per compatibilità form di registrazione
-  is_admin: boolean; // Campo derivato da user_roles per controllo permessi
-}
-
 // =====================================================================
 // ⚛️ REACT CONTEXT - Tipi per Context API
 // =====================================================================
