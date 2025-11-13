@@ -17,7 +17,8 @@ export function AuthForm() {
   const [error, setError] = useState<string | null>(null);
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
   const [formData, setFormData] = useState({
-    email: '',
+    emailOrUsername: '',  // Campo per login (email o username)
+    email: '',           // Campo per registrazione e reset
     password: '',
     username: '',
     firstName: '',
@@ -73,7 +74,7 @@ export function AuthForm() {
         alert('Account created successfully! Please log in.');
       } else if (mode === 'login') {
         const { error: signInError } = await signIn(
-          formData.email,
+          formData.emailOrUsername,  // Supporta email o username
           formData.password  
         );
 
@@ -89,7 +90,14 @@ export function AuthForm() {
         setMode('login');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      // Gestisce diversi tipi di errore per messaggi più specifici
+      if (err && typeof err === 'object' && 'message' in err) {
+        setError((err as Error).message);
+      } else if (typeof err === 'string') {
+        setError(err);
+      } else {
+        setError('An unexpected error occurred. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -176,15 +184,18 @@ export function AuthForm() {
 
           <div>           
             <Input
-                id="email"
-                name="email"
-                type="email"
+                id={mode === 'login' ? "emailOrUsername" : "email"}
+                name={mode === 'login' ? "emailOrUsername" : "email"}
+                type={mode === 'login' ? "text" : "email"}
                 autoComplete="email"
                 required
-                label="Email address"
+                label={mode === 'login' ? "Email or Username" : "Email address"}
                 icon={<Mail size={16} className="text-gray-500" />}
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                value={mode === 'login' ? formData.emailOrUsername : formData.email}
+                onChange={(e) => setFormData({ 
+                  ...formData, 
+                  [mode === 'login' ? 'emailOrUsername' : 'email']: e.target.value 
+                })}
               />            
           </div>
 

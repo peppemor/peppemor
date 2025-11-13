@@ -111,14 +111,89 @@ export class AuthService {
     }
   }
 
-  // Login utente
-  async signIn(email: string, password: string): Promise<{ error: any }> {
-    const { error } = await this.supabase.auth.signInWithPassword({ 
-      email, 
-      password 
-    });
-    
-    return { error };
+  // Utility per verificare se un input è una email valida
+  private isValidEmail(input: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(input);
+  }
+
+  // Ottiene l'email associata ad un username tramite database function
+  private async getEmailByUsername(username: string): Promise<{ email: string | null; error: string | null }> {
+    try {
+      const { data, error } = await this.supabase.rpc('get_email_by_username', {
+        input_username: username
+      });
+
+      if (error) {
+        console.error('RPC error:', error);
+        return { email: null, error: `Database error: ${error.message}` };
+      }
+
+      if (!data) {
+        return { email: null, error: `Username '${username}' not found. Please check your username or use your email address.` };
+      }
+
+      return { email: data, error: null };
+    } catch (error: any) {
+      console.error('Username lookup error:', error);
+      return { email: null, error: `Username lookup failed: ${error.message}` };
+    }
+  }
+
+  // Login con email o username
+  async signIn(emailOrUsername: string, password: string): Promise<{ error: any }> {
+    try {
+      // Step 1: Se sembra un'email, prova il login diretto
+      if (this.isValidEmail(emailOrUsername)) {
+        const { error } = await this.supabase.auth.signInWithPassword({ 
+          email: emailOrUsername, 
+          password 
+        });
+        
+        if (error) {
+          // Traduci errori di Supabase in messaggi più user-friendly
+          if (error.message.includes('Invalid login credentials')) {
+            return { error: 'Invalid email or password. Please check your credentials.' };
+          }
+          return { error: error.message };
+        }
+        
+        return { error: null };
+      }
+      
+      // Step 2: Se non è un'email, cerca l'email tramite username
+      const { email: foundEmail, error: lookupError } = await this.getEmailByUsername(emailOrUsername);
+      
+      if (lookupError) {
+        return { error: lookupError };
+      }
+      
+      if (!foundEmail) {
+        return { 
+          error: `Username '${emailOrUsername}' not found. Please check your username or use your email address.` 
+        };
+      }
+      
+      // Step 3: Login con l'email trovata
+      const { error } = await this.supabase.auth.signInWithPassword({ 
+        email: foundEmail, 
+        password 
+      });
+      
+      if (error) {
+        // Traduci errori di Supabase per login via username
+        if (error.message.includes('Invalid login credentials')) {
+          return { error: `Invalid password for username '${emailOrUsername}'. Please check your password.` };
+        }
+        return { error: error.message };
+      }
+      
+      return { error: null };
+      
+    } catch (error: any) {
+      console.error('Sign in error:', error);
+      return { error: `Authentication failed: ${error?.message || 'Unknown error'}` };
+    }
   }
 
   // Logout utente
