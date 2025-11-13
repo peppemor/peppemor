@@ -1,5 +1,5 @@
 import React from 'react';
-import { cn } from '../../types/utilis'
+import { cn } from '../../utils'
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';

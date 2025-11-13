@@ -1,5 +1,5 @@
 import React from 'react';
-import { cn } from '../../types/utilis';
+import { cn } from '../../utils';
 import { User } from 'lucide-react';
 
 interface AvatarProps {

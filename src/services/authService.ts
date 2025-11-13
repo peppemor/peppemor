@@ -105,33 +105,23 @@ export class AuthService {
     const { email, password, first_name, last_name, username } = userData;
 
     try {
-      const { data, error } = await this.supabase.auth.signUp({
+      const { error } = await this.supabase.auth.signUp({
         email,
         password,
         options: {
-          data: { first_name, last_name },
+          data: { 
+            first_name, 
+            last_name, 
+            username 
+          },
         },
       });
 
       if (error) return { data: { user: null }, error: error.message };
 
-      if (data.user) {
-        const insertData = {
-          id: data.user.id,
-          username,
-          full_name: `${first_name} ${last_name}`,
-          first_name,
-          last_name,
-          avatar_url: null,
-        };
-        
-        const { error: profileError } = await (this.supabase.from('profiles') as any).insert(insertData);
-
-        if (profileError) {
-          return { data: { user: null }, error: profileError.message };
-        }
-      }
-
+      // Con il trigger, il profilo viene creato automaticamente
+      // Non serve più inserimento manuale
+      
       return { data: { user: null }, error: null };
     } catch (error: any) {
       return { data: { user: null }, error: error.message || 'Unknown error' };
@@ -190,20 +180,5 @@ export class AuthService {
   async resetPassword(email: string): Promise<{ error: any }> {
     const { error } = await this.supabase.auth.resetPasswordForEmail(email);
     return { error };
-  }
-
-  // Aggiorna il profilo utente
-  async updateProfile(userId: string, updatedProfile: Partial<Profile>): Promise<{ error: any }> {
-    try {
-      const { error } = await (this.supabase
-        .from('profiles') as any)
-        .update(updatedProfile)
-        .eq('id', userId);
-
-      return { error };
-    } catch (error: any) {
-      console.error('Error updating profile:', error);
-      return { error };
-    }
   }
 }

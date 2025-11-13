@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { User, Camera, Check, X, Loader2 } from 'lucide-react';
 
-import { uploadAvatar } from '../services/profileService';
 import { useAuth } from '../contexts/AuthContext';
 import { useAuthActions } from '../hooks/useAuthService';
+import { useProfileActions } from '../hooks/useProfileService';
 
 import Avatar from '../components/ui/Avatar';
 import Input from  '../components/ui/Input';  
@@ -14,7 +14,8 @@ import toast from 'react-hot-toast';
 const Account: React.FC = () => {
   // Separazione: stato dal Context, operazioni dagli hooks
   const { user, profile, isLoading } = useAuth(); // Solo stato
-  const { updateProfile, isUsernameUnique } = useAuthActions(); // Solo operazioni
+  const { isUsernameUnique } = useAuthActions(); // Solo operazioni auth
+  const { uploadAvatar, updateProfile } = useProfileActions(); // Operazioni profilo
   
   const [username, setUsername] = useState(profile?.username || '');
   const [isUsernameAvailable, setIsUsernameAvailable] = useState<boolean | null>(null);
@@ -58,9 +59,9 @@ const Account: React.FC = () => {
     
     setIsUpdatingUsername(true);
     try {
-      const { error } = await updateProfile({ username });
-      if (error) {
-        throw new Error(error);
+      const { success, error } = await updateProfile(user.id, { username });
+      if (!success) {
+        throw new Error(error || 'Failed to update username');
       }
       toast.success('Username updated successfully');
     } catch (error) {
@@ -83,11 +84,13 @@ const Account: React.FC = () => {
     
     setIsUpdatingAvatar(true);
     try {
-      const avatarUrl = await uploadAvatar(file, user.id);
+      const { data: avatarUrl, error: uploadError } = await uploadAvatar(file, user.id);
+      if (uploadError) throw new Error(uploadError);
+      
       if (avatarUrl) {
-        const { error } = await updateProfile({ avatar_url: avatarUrl });
-        if (error) {
-          throw new Error(error);
+        const { success, error } = await updateProfile(user.id, { avatar_url: avatarUrl });
+        if (!success) {
+          throw new Error(error || 'Failed to update avatar');
         }
         toast.success('Avatar updated successfully');
       } else {
