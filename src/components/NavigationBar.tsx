@@ -12,7 +12,7 @@ const NavigationBar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   
   // Separazione: stato dal Context, operazioni dagli hooks
-  const { user, profile } = useAuth(); // Solo stato
+  const { user, profile, isAdmin } = useAuth(); // Solo stato
   const { signOut } = useAuthActions(); // Solo operazioni
 
   const handleSignOut = async () => {
@@ -100,14 +100,16 @@ const NavigationBar: React.FC = () => {
                       <User className="w-4 h-4 mr-2" />
                       <span>Account</span>
                     </Link>
-                    <Link
-                      to={PathConstants.ITINERARY_ADMIN}
-                      className="flex items-center w-full text-left px-4 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <Settings className="w-4 h-4 mr-2" />
-                      <span>Admin</span>
-                    </Link>
+                    {isAdmin && (
+                      <Link
+                        to={PathConstants.ITINERARY_ADMIN}
+                        className="flex items-center w-full text-left px-4 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <Settings className="w-4 h-4 mr-2" />
+                        <span>Admin</span>
+                      </Link>
+                    )}
                     <button
                       onClick={() => {
                         handleSignOut();
@@ -180,6 +182,14 @@ const NavigationBar: React.FC = () => {
                 >
                   Account
                 </Link>
+                {isAdmin && (
+                  <Link
+                    to={PathConstants.ITINERARY_ADMIN}
+                    className="block px-3 py-2 text-gray-600 hover:text-gray-900"
+                  >
+                    Admin
+                  </Link>
+                )}
                 <button
                   onClick={handleSignOut}
                   className="block w-full text-left px-3 py-2 text-gray-600 hover:text-gray-900"

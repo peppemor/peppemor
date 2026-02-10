@@ -9,6 +9,7 @@ interface AuthContextType {
   profile: Profile | null;
   isLoading: boolean;
   supabaseUser: User | null;
+  isAdmin: boolean;
   // Metodi essenziali per gestire lo stato
   refreshUserData: () => Promise<void>;
 }
@@ -21,6 +22,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const authService = useMemo(() => new AuthService(supabase), [supabase]);
@@ -29,6 +31,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!supabaseUser) {
       setUser(null);
       setProfile(null);
+      setIsAdmin(false);
       setIsLoading(false);
       return;
     }
@@ -37,10 +40,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { user: userData, profile: profileData } = await authService.buildUserData(supabaseUser);
       setUser(userData);
       setProfile(profileData);
+      
+      // Recupera il ruolo dell'utente
+      const { data: roleData, error: roleError } = await authService.getUserRole(supabaseUser.id);
+      if (!roleError && roleData) {
+        setIsAdmin(roleData.is_admin ?? false);
+      } else {
+        setIsAdmin(false);
+      }
     } catch (error) {
       console.error('Error fetching user data:', error);
       setUser(null);
       setProfile(null);
+      setIsAdmin(false);
     } finally {
       setIsLoading(false);
     }
@@ -58,6 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } else {
       setUser(null);
       setProfile(null);
+      setIsAdmin(false);
       setIsLoading(false);
     }
   }, [supabaseUser]);
@@ -68,6 +81,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       profile, 
       isLoading, 
       supabaseUser,
+      isAdmin,
       refreshUserData
     }}>
       {children}
