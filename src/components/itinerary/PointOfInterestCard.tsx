@@ -47,12 +47,14 @@ const PointOfInterestCard = forwardRef<HTMLDivElement, PointOfInterestCardProps>
             
             <p className="text-gray-600">{point.description}</p>
             
-            <div className="mt-4 flex items-center text-sm text-gray-500">
-              <MapPin size={16} className="mr-1" />
-              <span>
-                {point.coordinates[0].toFixed(4)}, {point.coordinates[1].toFixed(4)}
-              </span>
-            </div>
+            {point.coordinates && (
+              <div className="mt-4 flex items-center text-sm text-gray-500">
+                <MapPin size={16} className="mr-1" />
+                <span>
+                  {point.coordinates[0].toFixed(4)}, {point.coordinates[1].toFixed(4)}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>

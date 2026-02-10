@@ -43,19 +43,23 @@ const ItineraryMapView: React.FC<ItineraryMapViewProps> = ({
   
   useEffect(() => {
     if (mapRef.current && points.length > 0) {
-      const bounds = L.latLngBounds(points.map(point => point.coordinates));
-      mapRef.current.fitBounds(bounds, { padding: [50, 50] });
+      const validPoints = points.filter(p => p.coordinates !== null);
+      if (validPoints.length > 0) {
+        const bounds = L.latLngBounds(validPoints.map(point => point.coordinates as [number, number]));
+        mapRef.current.fitBounds(bounds, { padding: [50, 50] });
+      }
     }
   }, [points]);
 
-  const center = points.length > 0 
+  const validPoints = points.filter(p => p.coordinates !== null);
+  const center = validPoints.length > 0 
     ? [
-        points.reduce((sum, point) => sum + point.coordinates[0], 0) / points.length,
-        points.reduce((sum, point) => sum + point.coordinates[1], 0) / points.length
+        validPoints.reduce((sum, point) => sum + point.coordinates![0], 0) / validPoints.length,
+        validPoints.reduce((sum, point) => sum + point.coordinates![1], 0) / validPoints.length
       ] as [number, number]
     : [40.8518, 14.2681] as [number, number];
 
-  const pathCoordinates = points.map(point => point.coordinates);
+  const pathCoordinates = points.filter(p => p.coordinates !== null).map(point => point.coordinates as [number, number]);
 
   return (
     <div className="rounded-lg overflow-hidden border border-gray-200 sticky top-24 w-full">
@@ -97,10 +101,10 @@ const ItineraryMapView: React.FC<ItineraryMapViewProps> = ({
             opacity={0.7}
           />
           
-          {points.map((point) => (
+          {points.filter(p => p.coordinates !== null).map((point) => (
             <Marker 
               key={point.id} 
-              position={point.coordinates}
+              position={point.coordinates as [number, number]}
               icon={point.type === 'cultural' ? culturalIcon : foodIcon}
               eventHandlers={{
                 click: () => onPointClick(point.id)
