@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
-import { CartContextType } from '../types';
-import { CartItem } from '../types';
+import { CartContextType } from '../types/index.js';
+import { CartItem } from '../types/index.js';
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 

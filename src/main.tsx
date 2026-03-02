@@ -1,23 +1,19 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { SessionContextProvider } from '@supabase/auth-helpers-react';
-import App from './App.tsx';
+import App from './App.js';
 
 import './index.css';
 import 'leaflet/dist/leaflet.css';
 
-import { AuthProvider } from './contexts/AuthContext';
-import { CartProvider } from './contexts/CartContext.tsx';
-import { supabase } from './supabase/supabaseClients';
+import { AuthProvider } from './contexts/AuthContext.js';
+import { CartProvider } from './contexts/CartContext.js';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <SessionContextProvider supabaseClient={supabase}>
-      <AuthProvider>
-        <CartProvider>
-          <App />
-        </CartProvider>
-      </AuthProvider>
-    </SessionContextProvider>   
+    <AuthProvider>
+      <CartProvider>
+        <App />
+      </CartProvider>
+    </AuthProvider>   
   </StrictMode>
 );

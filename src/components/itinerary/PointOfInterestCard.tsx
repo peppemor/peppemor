@@ -1,6 +1,6 @@
 import { forwardRef } from 'react';
 import { MapPin, Landmark, Utensils } from 'lucide-react';
-import { PointOfInterest } from '../../types/index';
+import { PointOfInterest } from '../../types/index.js';
 
 interface PointOfInterestCardProps {
   point: PointOfInterest;

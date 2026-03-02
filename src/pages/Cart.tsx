@@ -1,6 +1,6 @@
 import React from 'react';
 import { Trash2 } from 'lucide-react';
-import { useCart } from '../contexts/CartContext';
+import { useCart } from '../contexts/CartContext.js';
 
 
 const Cart: React.FC = () => {

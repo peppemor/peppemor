@@ -1,4 +1,4 @@
-import { Print, PaperType } from '../types';
+import { Print, PaperType } from '../types/index.js';
 
 export const prints: Print[] = [
   {

@@ -1,19 +1,19 @@
 import { Suspense } from "react";
 import { createBrowserRouter } from "react-router-dom";
-import Home from '../pages/Home';
-import Gallery from '../pages/Gallery';
-import Contact from '../pages/Contact';
-import Cart from '../pages/Cart';
-import Account from '../pages/Account';
-import { AuthForm } from '../pages/AuthForm';
-import PrivateRoute from '../components/PrivateRoute';
-import PathConstants from './pathConstants';
-import MainContent from "../components/MainContent";
-import NotFound from "../pages/NotFound";
+import Home from '../pages/Home.js';
+import Gallery from '../pages/Gallery.js';
+import Contact from '../pages/Contact.js';
+import Cart from '../pages/Cart.js';
+import Account from '../pages/Account.js';
+import { AuthForm } from '../pages/AuthForm.js';
+import PrivateRoute from '../components/PrivateRoute.js';
+import PathConstants from './pathConstants.js';
+import MainContent from "../components/MainContent.js";
+import NotFound from "../pages/NotFound.js";
 
-import ItinerariesList from "../pages/ItinerariesList";
-import ItineraryDetail from "../pages/ItineraryDetail";
-import ItinerariesAdmin from "../pages/ItinerariesAdmin";
+import ItinerariesList from "../pages/ItinerariesList.js";
+import ItineraryDetail from "../pages/ItineraryDetail.js";
+import ItinerariesAdmin from "../pages/ItinerariesAdmin.js";
 
 const routes = [
     { path: PathConstants.INDEX, element: <Home /> },

@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Instagram, Facebook, MessageCircle } from 'lucide-react';
-import Button from '../components/ui/Button';
-import { useAuth } from '../contexts/AuthContext';
-import { useAuthActions } from '../hooks';
+import Button from '../components/ui/Button.js';
+import { useAuth } from '../contexts/AuthContext.js';
 import toast from 'react-hot-toast';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 const Contact: React.FC = () => {
   // Separazione: stato dal Context, operazioni dagli hooks
   const { user, profile } = useAuth(); // Solo stato
-  const { getUserSession } = useAuthActions(); // Solo operazioni
   
   const [name, setName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
@@ -16,7 +16,7 @@ const Contact: React.FC = () => {
 
   useEffect(() => {
     if (profile) {
-      setName(`${profile.first_name} ${profile.last_name}`);
+      setName(`${profile.firstName || ''} ${profile.lastName || ''}`.trim());
       setEmail(user?.email || '');
     }
   }, [profile, user]);
@@ -25,42 +25,19 @@ const Contact: React.FC = () => {
     e.preventDefault();
   
     try {
-      // Ottieni il token JWT dall'utente autenticato
-      
-      const session = await getUserSession();
-      const token = session?.data?.session?.access_token;
-
-      if (!token) {
-        throw new Error('User is not authenticated');
-      }
-  
-      // Effettua una richiesta POST al tuo endpoint Supabase
-      const response = await fetch('https://pernbjndcinuzldyhfam.supabase.co/functions/v1/send-contact-email', {
+      const response = await fetch(`${API_URL}/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`, // Includi il token JWT
         },
-        body: JSON.stringify({
-          from: email, // Usa l'email inserita dall'utente come mittente
-          subject: `New message from ${name}`, // Oggetto dell'email
-          html: `
-            <h1>New Contact Message</h1>
-            <p><strong>Name:</strong> ${name}</p>
-            <p><strong>Email:</strong> ${email}</p>
-            <p><strong>Message:</strong></p>
-            <p>${message}</p>
-          `, // Corpo HTML dell'email
-        }),
+        body: JSON.stringify({ name, email, message }),
       });
-  
+
       if (!response.ok) {
-        throw new Error('Failed to send message');
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data?.error || 'Failed to send message');
       }
-  
-      const data = await response.json();
-      console.log('Email sent successfully:', data);
-  
+
       toast.success('Message sent successfully!');
       setName('');
       setEmail('');

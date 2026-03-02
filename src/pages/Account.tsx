@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { User, Camera, Check, X, Loader2 } from 'lucide-react';
 
-import { useAuth } from '../contexts/AuthContext';
-import { useAuthActions, useProfileActions } from '../hooks';
+import { useAuth } from '../contexts/AuthContext.js';
+import { useAuthActions, useProfileActions } from '../hooks/index.js';
 
-import Avatar from '../components/ui/Avatar';
-import Input from  '../components/ui/Input';  
-import Button from '../components/ui/Button';
+import Avatar from '../components/ui/Avatar.js';
+import Input from  '../components/ui/Input.js';  
+import Button from '../components/ui/Button.js';
 
 import toast from 'react-hot-toast';
 
@@ -16,11 +16,11 @@ const Account: React.FC = () => {
   const { isUsernameUnique } = useAuthActions(); // Solo operazioni auth
   const { uploadAvatar, updateProfile } = useProfileActions(); // Operazioni profilo
   
-  const [username, setUsername] = useState(profile?.username || '');
+  const [username, setUsername] = useState(user?.username || '');
   const [isUsernameAvailable, setIsUsernameAvailable] = useState<boolean | null>(null);
   const [isUpdatingUsername, setIsUpdatingUsername] = useState(false);
   const [isUpdatingAvatar, setIsUpdatingAvatar] = useState(false);
-  const [previewAvatar, setPreviewAvatar] = useState<string | null>(profile?.avatar_url || null);
+  const [previewAvatar, setPreviewAvatar] = useState<string | null>(profile?.avatarUrl || null);
   
   useEffect(() => {
     if (!isLoading && !user) {
@@ -31,10 +31,10 @@ const Account: React.FC = () => {
 
   useEffect(() => {
     if (profile) {
-      setUsername(profile.username || '');
-      setPreviewAvatar(profile.avatar_url || null);
+      setUsername(user?.username || '');
+      setPreviewAvatar(profile.avatarUrl || null);
     }
-  }, [profile]);
+  }, [profile, user]);
   
   const checkUsername = async (username: string) => {
     if (username.length < 3) {
@@ -54,7 +54,7 @@ const Account: React.FC = () => {
   };
   
   const handleUsernameSubmit = async () => {
-    if (!user || !isUsernameAvailable || username === profile?.username) return;
+    if (!user || !isUsernameAvailable || username === user?.username) return;
     
     setIsUpdatingUsername(true);
     try {
@@ -72,7 +72,6 @@ const Account: React.FC = () => {
   };
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('Avatar change triggered');
     const fileInput = e.target; // Salva il riferimento all'input
     const file = fileInput.files?.[0];
     if (!file || !user) return;
@@ -87,10 +86,7 @@ const Account: React.FC = () => {
       if (uploadError) throw new Error(uploadError);
       
       if (avatarUrl) {
-        const { success, error } = await updateProfile(user.id, { avatar_url: avatarUrl });
-        if (!success) {
-          throw new Error(error || 'Failed to update avatar');
-        }
+        setPreviewAvatar(avatarUrl);
         toast.success('Avatar updated successfully');
       } else {
         throw new Error('Failed to upload avatar');
@@ -99,7 +95,7 @@ const Account: React.FC = () => {
       toast.error('Failed to update avatar');
       console.error(error);
       // Revert to original avatar
-      setPreviewAvatar(profile?.avatar_url || null);
+      setPreviewAvatar(profile?.avatarUrl || null);
       fileInput.value = ''; // Reset the file input
     } finally {
       // Fallback per garantire il reset
@@ -130,7 +126,7 @@ const Account: React.FC = () => {
           <div className="relative">
             <Avatar
               src={previewAvatar}
-              alt={profile.username || 'User'}
+              alt={user?.username || 'User'}
               size="xl"
               className="border-2 border-white shadow-md"
             />
@@ -167,7 +163,7 @@ const Account: React.FC = () => {
                 First Name
               </label>
               <p className="p-2.5 bg-gray-50 rounded-md border border-gray-200 text-gray-700">
-                {profile.first_name || '(Not set)'}
+                {profile.firstName || '(Not set)'}
               </p>
               <p className="text-xs text-gray-500 mt-1">
                 Contact support to update your name
@@ -179,7 +175,7 @@ const Account: React.FC = () => {
                 Last Name
               </label>
               <p className="p-2.5 bg-gray-50 rounded-md border border-gray-200 text-gray-700">
-                {profile.last_name || '(Not set)'}
+                {profile.lastName || '(Not set)'}
               </p>
               <p className="text-xs text-gray-500 mt-1">
                 Contact support to update your name
@@ -208,7 +204,7 @@ const Account: React.FC = () => {
                 disabled={
                   !isUsernameAvailable ||
                   isUpdatingUsername ||
-                  username === profile.username
+                  username === user?.username
                 }
                 isLoading={isUpdatingUsername}               
               >

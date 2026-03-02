@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X, LogOut, User, ShoppingCart, Camera, Settings} from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { useAuthActions } from '../hooks';
-import PathConstants from '../routes/pathConstants';
-import { useCart } from '../contexts/CartContext';
-import Avatar from './ui/Avatar';
+import { useAuth } from '../contexts/AuthContext.js';
+import { useAuthActions } from '../hooks/index.js';
+import PathConstants from '../routes/pathConstants.js';
+import { useCart } from '../contexts/CartContext.js';
+import Avatar from './ui/Avatar.js';
 
 const NavigationBar: React.FC = () => {
   const { cartItems } = useCart();
@@ -83,12 +83,12 @@ const NavigationBar: React.FC = () => {
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
                   className="text-gray-600 hover:text-gray-900 flex items-center"
                 >
-                  <Avatar
-                    src={profile?.avatar_url || ''} // Ensure profile is not null before accessing avatarUrl
-                    alt={profile?.username} // Non-null assertion
-                    size="sm"
-                  />
-                  <span className="ml-2">{profile?.username}</span>
+                    <Avatar
+                      src={profile?.avatarUrl || ''}
+                      alt={user?.username || 'User'}
+                      size="sm"
+                    />
+                    <span className="ml-2">{user?.username}</span>
                 </button>
                 {isMenuOpen && (
                   <div className="absolute left-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg">

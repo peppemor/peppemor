@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import L from 'leaflet';
-import { PointOfInterest } from '../../types/index';
+import { PointOfInterest } from '../../types/index.js';
 import { Utensils, Landmark } from 'lucide-react';
 
 const culturalIcon = L.divIcon({

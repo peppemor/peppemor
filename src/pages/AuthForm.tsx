@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Loader2, Mail, Lock } from 'lucide-react';
 
-import { useAuthActions } from '../hooks';
-import PathConstants from '../routes/pathConstants';
-import Input from '../components/ui/Input';
+import { useAuthActions } from '../hooks/index.js';
+import PathConstants from '../routes/pathConstants.js';
+import Input from '../components/ui/Input.js';
 
 type AuthMode = 'login' | 'register' | 'reset';
 

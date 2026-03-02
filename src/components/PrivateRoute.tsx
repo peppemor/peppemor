@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import PathConstants from '../routes/pathConstants';
+import { useAuth } from '../contexts/AuthContext.js';
+import PathConstants from '../routes/pathConstants.js';
 import { Loader2 } from 'lucide-react';
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -14,8 +14,6 @@ const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       </div>
     );
   }
-
-  console.log('PrivateRoute - user:', user);
 
   return user ? <>{children}</> : <Navigate to={PathConstants.LOGIN} />;
 };

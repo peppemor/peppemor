@@ -1,4 +1,3 @@
-
 /**
  * =====================================================================
  * APP-TYPES.TS - Tipi TypeScript specifici dell'applicazione
@@ -8,16 +7,13 @@
  * nell'applicazione, organizzati per funzionalità.
  * 
  * I tipi qui definiti:
- * - Estendono i tipi generati automaticamente da Supabase
+ * - Estendono i tipi generati da Prisma
  * - Definiscono interfacce per componenti React e Context
  * - Modellano le entità di business dell'app
  * 
- * IMPORTANTE: Non modificare manualmente i tipi in './supabase' 
- * perché sono auto-generati dal database.
+ * MIGRAZIONE DA SUPABASE A PRISMA:
+ * I tipi sono stati aggiornati per usare Prisma invece di Supabase
  */
-
-// Import dei tipi generati automaticamente da Supabase
-import { Database } from './supabase';
 
 // =====================================================================
 // 🖼️ PRINTS - Tipi per il sistema di stampe/poster
@@ -27,16 +23,16 @@ import { Database } from './supabase';
  * Dimensioni disponibili per una stampa con relativo prezzo
  */
 export interface PrintSize {
-  size: string;        // es. "A4", "A3", "50x70cm"
-  price: number;       // Prezzo in centesimi (es. 2999 = €29.99)
+  size: string;        // es. "20x30cm", "30x45cm"
+  price: number;       // Prezzo (es. 49.99)
 }
 
 /**
  * Tipologia di carta disponibile per le stampe
  */
 export interface PaperType {
-  id: string;              // Identificatore unico
-  name: string;            // es. "Carta fotografica", "Carta fine art"
+  id: string;              // es. "matte", "glossy"
+  name: string;            // es. "Matte Photo Paper"
   description: string;     // Descrizione dettagliata
   priceMultiplier: number; // Moltiplicatore del prezzo (es. 1.5 = +50%)
 }
@@ -47,7 +43,7 @@ export interface PaperType {
 export interface Print {
   id: string;              // Identificatore unico
   title: string;           // Titolo della stampa
-  description: string;     // Descrizione dettagliata
+  description?: string;    // Descrizione dettagliata
   image: string;           // URL dell'immagine
   sizes: PrintSize[];      // Array delle dimensioni disponibili
 }
@@ -55,22 +51,39 @@ export interface Print {
 // =====================================================================
 // 🗺️ ITINERARIES - Tipi per itinerari turistici
 // =====================================================================
-// 
-// NOTA: Questi tipi vengono direttamente dalle tabelle Supabase
-// usando la notazione Database['public']['Tables']['nome_tabella']['Row']
-// che ci garantisce type-safety con il database reale.
 
 /**
  * Itinerario turistico completo
- * Tipo derivato dalla tabella 'itineraries' in Supabase
  */
-export type Itinerary = Database['public']['Tables']['itineraries']['Row'];
+export interface Itinerary {
+  id: string;
+  title: string;
+  shortDescription?: string;
+  fullDescription?: string;
+  coverImage?: string;
+  distance?: number;
+  estimatedTime?: string;
+  difficulty?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 /**
  * Punto di interesse all'interno di un itinerario
- * Tipo derivato dalla tabella 'points_of_interest' in Supabase
  */
-export type PointOfInterest = Database['public']['Tables']['points_of_interest']['Row'];
+export interface PointOfInterest {
+  id: string;
+  itineraryId: string;
+  name: string;
+  description?: string;
+  latitude?: number;
+  longitude?: number;
+  imageUrl?: string;
+  visitDuration?: string;
+  ticketPrice?: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 // =====================================================================
 // 🛒 CART - Tipi per il carrello della spesa
@@ -83,7 +96,7 @@ export type PointOfInterest = Database['public']['Tables']['points_of_interest']
 export interface CartItem {
   id: string;        // ID del prodotto
   title: string;     // Nome del prodotto
-  size: string;      // Dimensione scelta (es. "A4")
+  size: string;      // Dimensione scelta (es. "20x30cm")
   paperType: string; // Tipo di carta scelto
   price: number;     // Prezzo finale calcolato
   image: string;     // URL dell'immagine del prodotto
@@ -94,18 +107,41 @@ export interface CartItem {
 // =====================================================================
 
 /**
- * Profilo utente completo
- * Tipo derivato dalla tabella 'profiles' in Supabase
- * Contiene: username, full_name, first_name, last_name, avatar_url, etc.
+ * Profilo utente completo da Prisma
  */
-export type Profile = Database['public']['Tables']['profiles']['Row'];
+export interface Profile {
+  id: string;
+  userId: string;
+  firstName?: string;
+  lastName?: string;
+  fullName?: string;
+  avatarUrl?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 /**
  * Ruoli utente nel sistema
- * Tipo derivato dalla tabella 'user_roles' in Supabase
- * Gestisce i permessi (admin, user, etc.)
  */
-export type UserRole = Database['public']['Tables']['user_roles']['Row'];
+export interface UserRole {
+  id: string;
+  userId: string;
+  role: string; // "admin", "user", etc.
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * Utente dell'applicazione
+ */
+export interface User {
+  id: string;
+  email: string;
+  username: string;
+  createdAt: Date;
+  updatedAt: Date;
+  // Non include password! È sensibile
+}
 
 // =====================================================================
 // ⚛️ REACT CONTEXT - Tipi per Context API
@@ -113,11 +149,6 @@ export type UserRole = Database['public']['Tables']['user_roles']['Row'];
 
 /**
  * Context per la gestione del carrello della spesa
- * 
- * Fornisce stato e operazioni per:
- * - Visualizzare items nel carrello
- * - Aggiungere/rimuovere prodotti
- * - Gestire lo stato del carrello nell'app
  */
 export interface CartContextType {
   cartItems: CartItem[];                                              // Lista prodotti nel carrello
@@ -126,22 +157,18 @@ export interface CartContextType {
   removeFromCart: (itemId: string) => void;                          // Funzione per rimuovere prodotto
 }
 
-
 // =====================================================================
 // 🔧 UTILS & COMPONENTS - Tipi per componenti e utilità
 // =====================================================================
 
 /**
  * Props per il componente Modal di stampa
- * 
- * Utilizzato per mostrare i dettagli di una stampa con opzioni di personalizzazione
- * (dimensione, tipo carta) e possibilità di aggiungere al carrello
  */
 export interface ModalProps {
   print: {
     id: string;
     title: string;
-    description: string;
+    description?: string;
     image: string;
     sizes: PrintSize[];
   };

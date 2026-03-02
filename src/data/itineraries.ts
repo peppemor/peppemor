@@ -1,5 +1,5 @@
   
-  import { Itinerary } from '../types/index';
+  import { Itinerary } from '../types/index.js';
     
   const itineraries: Itinerary[] = [
     {

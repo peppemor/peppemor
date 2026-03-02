@@ -1,90 +1,79 @@
-import type { Database } from '../types';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { PrismaClient, Itinerary, PointOfInterest } from '@prisma/client';
 
-type Itinerary = Database['public']['Tables']['itineraries']['Row'];
-type PointOfInterest = Database['public']['Tables']['points_of_interest']['Row'];
-type ItineraryWithPOIs = Itinerary & { points_of_interest: PointOfInterest[] };
+export type ItineraryWithPOIs = Itinerary & { pointsOfInterest: PointOfInterest[] };
 
 export class ItineraryService {
-  private supabase: SupabaseClient;
+  private prisma: PrismaClient;
 
-  constructor(supabaseClient: SupabaseClient) {
-    this.supabase = supabaseClient;
+  constructor(prismaClient: PrismaClient) {
+    this.prisma = prismaClient;
   }
 
-  // Ottenere tutti gli itinerari
+  /**
+   * Ottenere tutti gli itinerari
+   */
   async fetchItineraries(): Promise<{ data: Itinerary[] | null; error: string | null }> {
     try {
-      const { data, error } = await this.supabase
-        .from('itineraries')
-        .select('*')
-        .order('title', { ascending: true });
+      const data = await this.prisma.itinerary.findMany({
+        orderBy: { title: 'asc' },
+      });
 
-      if (error) {
-        return { data: null, error: error.message };
-      }
-
-      return { data: data as Itinerary[], error: null };
+      return { data, error: null };
     } catch (error: any) {
       return { data: null, error: error.message || 'Errore sconosciuto nel recupero degli itinerari' };
     }
   }
 
-  // Ottenere un itinerario con i punti di interesse
+  /**
+   * Ottenere un itinerario con i punti di interesse
+   */
   async fetchItineraryWithPOIs(itineraryId: string): Promise<{ data: ItineraryWithPOIs | null; error: string | null }> {
     try {
-      const { data, error } = await this.supabase
-        .from('itineraries')
-        .select(`
-          *,
-          points_of_interest (*)
-        `)
-        .eq('id', itineraryId)
-        .single();
+      const data = await this.prisma.itinerary.findUnique({
+        where: { id: itineraryId },
+        include: { pointsOfInterest: true },
+      });
 
-      if (error) {
-        return { data: null, error: error.message };
+      if (!data) {
+        return { data: null, error: 'Itinerario non trovato' };
       }
 
-      return { data: data as ItineraryWithPOIs, error: null };
+      return { data, error: null };
     } catch (error: any) {
       return { data: null, error: error.message || 'Errore sconosciuto nel recupero dell\'itinerario' };
     }
   }
 
-  // Ottenere un itinerario semplice (senza POIs)
+  /**
+   * Ottenere un itinerario semplice (senza POIs)
+   */
   async fetchItineraryById(itineraryId: string): Promise<{ data: Itinerary | null; error: string | null }> {
     try {
-      const { data, error } = await this.supabase
-        .from('itineraries')
-        .select('*')
-        .eq('id', itineraryId)
-        .single();
+      const data = await this.prisma.itinerary.findUnique({
+        where: { id: itineraryId },
+      });
 
-      if (error) {
-        return { data: null, error: error.message };
+      if (!data) {
+        return { data: null, error: 'Itinerario non trovato' };
       }
 
-      return { data: data as Itinerary, error: null };
+      return { data, error: null };
     } catch (error: any) {
       return { data: null, error: error.message || 'Errore sconosciuto nel recupero dell\'itinerario' };
     }
   }
 
-  // Ottenere punti di interesse per un itinerario
+  /**
+   * Ottenere punti di interesse per un itinerario
+   */
   async fetchPointsOfInterest(itineraryId: string): Promise<{ data: PointOfInterest[] | null; error: string | null }> {
     try {
-      const { data, error } = await this.supabase
-        .from('points_of_interest')
-        .select('*')
-        .eq('itinerary_id', itineraryId)
-        .order('name', { ascending: true });
+      const data = await this.prisma.pointOfInterest.findMany({
+        where: { itineraryId },
+        orderBy: { name: 'asc' },
+      });
 
-      if (error) {
-        return { data: null, error: error.message };
-      }
-
-      return { data: data as PointOfInterest[], error: null };
+      return { data, error: null };
     } catch (error: any) {
       return { data: null, error: error.message || 'Errore sconosciuto nel recupero dei punti di interesse' };
     }

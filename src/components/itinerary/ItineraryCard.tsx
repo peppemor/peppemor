@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Clock } from 'lucide-react';
-import { Itinerary } from '../../types/index';
+import { Itinerary } from '../../types/index.js';
 
 interface ItineraryCardProps {
   itinerary: Itinerary;

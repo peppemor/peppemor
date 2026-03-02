@@ -1,4 +1,4 @@
-import { Profile, UserRole } from '../types';
+import { Profile, UserRole } from '../types/index.js';
 
 /**
  * Utility functions per gestire operazioni su User
@@ -18,7 +18,7 @@ export function isUserAdmin(
 ): boolean {
   // Se abbiamo userRole, usalo come fonte primaria
   if (userRole) {
-    return Boolean(userRole.is_admin);
+    return userRole.role === 'admin';
   }
   
   // Se abbiamo profile con informazioni di ruolo
@@ -39,10 +39,10 @@ export function isUserAdmin(
 export function getUserFullName(profile?: Profile | null): string {
   if (!profile) return '';
   
-  if (profile.full_name) return profile.full_name;
+  if (profile.fullName) return profile.fullName;
   
-  const firstName = profile.first_name || '';
-  const lastName = profile.last_name || '';
+  const firstName = profile.firstName || '';
+  const lastName = profile.lastName || '';
   
   return `${firstName} ${lastName}`.trim();
 }
@@ -56,8 +56,8 @@ export function getUserFullName(profile?: Profile | null): string {
 export function getUserInitials(profile?: Profile | null): string {
   if (!profile) return '';
   
-  const firstName = profile.first_name?.[0] || '';
-  const lastName = profile.last_name?.[0] || '';
+  const firstName = profile.firstName?.[0] || '';
+  const lastName = profile.lastName?.[0] || '';
   
   return `${firstName}${lastName}`.toUpperCase();
 }

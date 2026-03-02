@@ -1,77 +1,43 @@
-
-import type { Database } from '../types/supabase';
-
-type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
-type Profile = Database['public']['Tables']['profiles']['Row'];
+import { PrismaClient, Profile } from '@prisma/client';
 
 export class ProfileService {
-  private supabase: any;
+  private prisma: PrismaClient;
 
-  constructor(supabaseClient: any) {
-    this.supabase = supabaseClient;
+  constructor(prismaClient: PrismaClient) {
+    this.prisma = prismaClient;
   }
 
-  // Ottenere profilo per ID
+  /**
+   * Ottenere profilo per ID
+   */
   async getProfileById(userId: string): Promise<{ data: Profile | null; error: string | null }> {
     try {
-      const { data, error } = await this.supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
+      const profile = await this.prisma.profile.findUnique({
+        where: { userId },
+      });
 
-      if (error) {
-        return { data: null, error: error.message };
+      if (!profile) {
+        return { data: null, error: 'Profile not found' };
       }
 
-      return { data: data as Profile, error: null };
+      return { data: profile, error: null };
     } catch (error: any) {
       return { data: null, error: error.message || 'Unknown error' };
     }
   }
 
-  // Upload avatar
-  async uploadAvatar(file: File, userId: string): Promise<{ data: string | null; error: string | null }> {
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `avatar-${userId}.${fileExt}`;
-      const filePath = `${userId}/${fileName}`;
-      
-      const { error } = await this.supabase.storage
-        .from('avatars')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: true, // Sovrascrive il file esistente
-        });
-        
-      if (error) {
-        return { data: null, error: error.message };
-      }
-
-      const { data } = this.supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-
-      const publicUrl = data?.publicUrl || null;
-      return { data: publicUrl, error: null };
-    } catch (error: any) {
-      return { data: null, error: error.message || 'Unknown error' };
-    }
-  }
-  
-  // Aggiornare avatar nel profilo
+  /**
+   * Aggiornare avatar nel profilo
+   * 
+   * Nota: Per ora salva solo l'URL dell'avatar
+   * Per il file upload, implementare un sistema server-side (multer, etc.)
+   */
   async updateAvatar(userId: string, avatarUrl: string): Promise<{ success: boolean; error: string | null }> {
     try {
-      const updateData: ProfileUpdate = { avatar_url: avatarUrl };
-      
-      const { error } = await (this.supabase
-        .from('profiles') as any)
-        .update(updateData)
-        .eq('id', userId);
-      
-      if (error) {
-        return { success: false, error: error.message };
-      }
+      await this.prisma.profile.update({
+        where: { userId },
+        data: { avatarUrl },
+      });
       
       return { success: true, error: null };
     } catch (error: any) {
@@ -79,30 +45,15 @@ export class ProfileService {
     }
   }
 
-  // Eliminare avatar dell'utente
+  /**
+   * Eliminare avatar dell'utente
+   */
   async deleteUserAvatar(userId: string): Promise<{ success: boolean; error: string | null }> {
     try {
-      const { data: files, error: listError } = await this.supabase.storage
-        .from('avatars')
-        .list(userId); // elenca i file nella "cartella" dell'utente
-    
-      if (listError) {
-        return { success: false, error: listError.message };
-      }
-
-      if (!files || files.length === 0) {
-        return { success: false, error: 'No avatar found to delete' };
-      }
-    
-      const filePaths = files.map((file: any) => `${userId}/${file.name}`);
-    
-      const { error: deleteError } = await this.supabase.storage
-        .from('avatars')
-        .remove(filePaths);
-    
-      if (deleteError) {
-        return { success: false, error: deleteError.message };
-      }
+      await this.prisma.profile.update({
+        where: { userId },
+        data: { avatarUrl: null },
+      });
     
       return { success: true, error: null };
     } catch (error: any) {
@@ -110,24 +61,37 @@ export class ProfileService {
     }
   }
 
-  // Aggiornare profilo generale
-  async updateProfile(userId: string, updates: ProfileUpdate): Promise<{ success: boolean; error: string | null }> {
+  /**
+   * Aggiornare profilo generale
+   */
+  async updateProfile(userId: string, updates: Partial<Profile>): Promise<{ success: boolean; error: string | null }> {
     try {
-      const { error } = await (this.supabase
-        .from('profiles') as any)
-        .update(updates)
-        .eq('id', userId);
-      
-      if (error) {
-        return { success: false, error: error.message };
-      }
+      await this.prisma.profile.update({
+        where: { userId },
+        data: updates,
+      });
       
       return { success: true, error: null };
     } catch (error: any) {
       return { success: false, error: error.message || 'Unknown error' };
+    }
+  }
+
+  /**
+   * Creare un nuovo profilo (normalmente creato con l'utente)
+   */
+  async createProfile(userId: string, data: Partial<Profile>): Promise<{ data: Profile | null; error: string | null }> {
+    try {
+      const profile = await this.prisma.profile.create({
+        data: {
+          userId,
+          ...data,
+        },
+      });
+
+      return { data: profile, error: null };
+    } catch (error: any) {
+      return { data: null, error: error.message || 'Unknown error' };
     }
   }
 }
-  
-
- 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
-import { ModalProps, PrintSize, PaperType } from '../types';
-import { paperTypes } from '../data/prints';
+import { ModalProps, PrintSize, PaperType } from '../types/index.js';
+import { paperTypes } from '../data/prints.js';
 
 const PrintModal: React.FC<ModalProps> = ({ print, isOpen, onClose, onAddToCart }) => {
   const [selectedSize, setSelectedSize] = useState<PrintSize | null>(null);

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Print } from '../types';
-import { prints } from '../data/prints';
-import PrintModal from '../components/PrintModal';
-import { useCart } from '../contexts/CartContext';
+import { Print } from '../types/index.js';
+import { prints } from '../data/prints.js';
+import PrintModal from '../components/PrintModal.js';
+import { useCart } from '../contexts/CartContext.js';
 
 
 

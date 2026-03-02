@@ -1,8 +1,8 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 
-import NavigationBar from './NavigationBar';
-import Footer from './Footer';
+import NavigationBar from './NavigationBar.js';
+import Footer from './Footer.js';
 
 
 const MainContent: React.FC = () => {

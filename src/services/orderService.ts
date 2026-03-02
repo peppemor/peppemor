@@ -1,19 +1,22 @@
-import { supabase } from '../supabase/supabaseClients';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
-export async function getUserOrders(userId: string) {
-    const { data, error } = await supabase
-      .from('orders')
-      .select(`
-        *,
-        order_items (*)
-      `)
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-    
-    if (error) {
-      console.error('Error fetching orders:', error);
+export async function getUserOrders(_userId: string) {
+  // TODO: implement backend endpoint /orders
+  try {
+    const token = localStorage.getItem('auth_token') || '';
+    const response = await fetch(`${API_URL}/orders`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
       return [];
     }
-    
-    return data;
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    return [];
   }
+}

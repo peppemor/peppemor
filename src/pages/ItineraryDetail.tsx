@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, MapPin, Clock, BarChart3 } from 'lucide-react';
-import { useItineraryActions } from '../hooks';
-import ItineraryMapView from '../components/itinerary/ItineraryMapView';
-import PointOfInterestCard from '../components/itinerary/PointOfInterestCard';
-import PathConstants from '../routes/pathConstants';
-import { Database } from '../types';
+import { useItineraryActions } from '../hooks/index.js';
+import ItineraryMapView from '../components/itinerary/ItineraryMapView.js';
+import PointOfInterestCard from '../components/itinerary/PointOfInterestCard.js';
+import PathConstants from '../routes/pathConstants.js';
+import { Database } from '../types/index.js';
 
 // Tipi dal database
 type Itinerary = Database['public']['Tables']['itineraries']['Row'];
