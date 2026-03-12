@@ -238,7 +238,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   return (
-    <AuthContext.Provider value={{
+    <AuthContext value={{
       user,
       profile,
       userRole,
@@ -253,7 +253,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       updateProfile,
     }}>
       {children}
-    </AuthContext.Provider>
+    </AuthContext>
   );
 };
 

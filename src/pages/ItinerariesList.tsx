@@ -2,9 +2,7 @@ import React, { useEffect, useState } from 'react';
 import ItineraryCard from '../components/itinerary/ItineraryCard.js';
 import { useItineraryActions } from '../hooks/index.js';
 import { MapPin } from 'lucide-react';
-import { Database } from '../types/index.js';
-
-type Itinerary = Database['public']['Tables']['itineraries']['Row'];
+import type { Itinerary } from '../types/index.js';
 
 const ItinerariesList: React.FC = () => {
   const { fetchItineraries } = useItineraryActions();

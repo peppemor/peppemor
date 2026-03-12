@@ -18,7 +18,7 @@ const ItineraryCard: React.FC<ItineraryCardProps> = ({ itinerary }) => {
     <article className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
       <div className="relative h-60 overflow-hidden">
         <img 
-          src={itinerary.cover_image || ''} 
+          src={itinerary.coverImage || ''} 
           alt={itinerary.title} 
           className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
         />
@@ -33,7 +33,7 @@ const ItineraryCard: React.FC<ItineraryCardProps> = ({ itinerary }) => {
       
       <div className="p-6">
         <h2 className="font-serif text-xl font-bold text-gray-800 mb-2">{itinerary.title}</h2>
-        <p className="text-gray-600 mb-4">{itinerary.short_description}</p>
+        <p className="text-gray-600 mb-4">{itinerary.shortDescription}</p>
         
         <div className="flex flex-wrap gap-4 text-sm text-gray-500 mb-6">
           <div className="flex items-center gap-1">
@@ -42,7 +42,7 @@ const ItineraryCard: React.FC<ItineraryCardProps> = ({ itinerary }) => {
           </div>
           <div className="flex items-center gap-1">
             <Clock size={16} />
-            <span>{itinerary.estimated_time}</span>
+            <span>{itinerary.estimatedTime}</span>
           </div>
         </div>
         

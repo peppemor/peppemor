@@ -5,12 +5,9 @@ import { useItineraryActions } from '../hooks/index.js';
 import ItineraryMapView from '../components/itinerary/ItineraryMapView.js';
 import PointOfInterestCard from '../components/itinerary/PointOfInterestCard.js';
 import PathConstants from '../routes/pathConstants.js';
-import { Database } from '../types/index.js';
+import type { Itinerary, PointOfInterest } from '../types/index.js';
 
-// Tipi dal database
-type Itinerary = Database['public']['Tables']['itineraries']['Row'];
-type PointOfInterest = Database['public']['Tables']['points_of_interest']['Row'];
-type ItineraryWithPOIs = Itinerary & { points_of_interest: PointOfInterest[] };
+type ItineraryWithPOIs = Itinerary & { pointsOfInterest: PointOfInterest[] };
 
 const ItineraryDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,7 +18,7 @@ const ItineraryDetail: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   
   const [activePointId, setActivePointId] = useState<string | null>(null);
-  const pointRefs = useRef<Record<string, React.RefObject<HTMLDivElement>>>({});
+  const pointRefs = useRef<Record<string, React.RefObject<HTMLDivElement | null>>>({});
   
   // Fetch itinerary with points of interest
   useEffect(() => {
@@ -54,14 +51,14 @@ const ItineraryDetail: React.FC = () => {
   
   // Initialize refs for each point of interest
   useEffect(() => {
-    if (itinerary?.points_of_interest) {
-      itinerary.points_of_interest.forEach(point => {
+    if (itinerary?.pointsOfInterest) {
+      itinerary.pointsOfInterest.forEach((point) => {
         pointRefs.current[point.id] = React.createRef<HTMLDivElement>();
       });
       
       // Set the first point as active by default
-      if (itinerary.points_of_interest.length > 0) {
-        setActivePointId(itinerary.points_of_interest[0].id);
+      if (itinerary.pointsOfInterest.length > 0) {
+        setActivePointId(itinerary.pointsOfInterest[0].id);
       }
     }
   }, [itinerary]);
@@ -118,9 +115,9 @@ const ItineraryDetail: React.FC = () => {
         </Link>
         
         <div className="relative h-64 md:h-96 rounded-xl overflow-hidden mb-6">
-          {itinerary.cover_image ? (
+          {itinerary.coverImage ? (
             <img 
-              src={itinerary.cover_image} 
+              src={itinerary.coverImage} 
               alt={itinerary.title} 
               className="w-full h-full object-cover"
             />
@@ -132,7 +129,7 @@ const ItineraryDetail: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
           <div className="absolute bottom-0 left-0 p-6 text-white">
             <h1 className="font-serif text-3xl md:text-4xl font-bold mb-2">{itinerary.title}</h1>
-            <p className="text-lg text-gray-100">{itinerary.short_description}</p>
+            <p className="text-lg text-gray-100">{itinerary.shortDescription}</p>
           </div>
         </div>
         
@@ -143,15 +140,15 @@ const ItineraryDetail: React.FC = () => {
               <span>{itinerary.distance} km</span>
             </div>
           )}
-          {itinerary.estimated_time && (
+          {itinerary.estimatedTime && (
             <div className="flex items-center gap-1">
               <Clock size={18} />
-              <span>{itinerary.estimated_time}</span>
+              <span>{itinerary.estimatedTime}</span>
             </div>
           )}
           <div className="flex items-center gap-1">
             <BarChart3 size={18} />
-            <span>{itinerary.points_of_interest?.length || 0} punti di interesse</span>
+            <span>{itinerary.pointsOfInterest?.length || 0} punti di interesse</span>
           </div>
           {itinerary.difficulty && (
             <div className="bg-gray-100 px-3 py-1 rounded-full">
@@ -164,17 +161,17 @@ const ItineraryDetail: React.FC = () => {
       <div className="grid grid-cols-5 gap-8">
         {/* Colonna sinistra: Descrizione e punti di interesse */}
         <div className="col-span-3">
-          {itinerary.full_description && (
+          {itinerary.fullDescription && (
             <div className="mb-8">
               <h2 className="font-serif text-2xl font-bold text-gray-800 mb-4">Descrizione</h2>
-              <p className="text-gray-600">{itinerary.full_description}</p>
+              <p className="text-gray-600">{itinerary.fullDescription}</p>
             </div>
           )}
 
           <div>
             <h2 className="font-serif text-2xl font-bold text-gray-800 mb-6">Punti di interesse</h2>
-            {itinerary.points_of_interest && itinerary.points_of_interest.length > 0 ? (
-              itinerary.points_of_interest.map((point) => (
+            {itinerary.pointsOfInterest && itinerary.pointsOfInterest.length > 0 ? (
+              itinerary.pointsOfInterest.map((point) => (
                 <PointOfInterestCard 
                   key={point.id}
                   ref={pointRefs.current[point.id]}
@@ -191,9 +188,9 @@ const ItineraryDetail: React.FC = () => {
 
         {/* Colonna destra: Mappa */}
         <div className="col-span-2 lg:sticky lg:top-24 h-[600px] w-full">
-          {itinerary.points_of_interest && itinerary.points_of_interest.length > 0 ? (
+          {itinerary.pointsOfInterest && itinerary.pointsOfInterest.length > 0 ? (
             <ItineraryMapView 
-              points={itinerary.points_of_interest}
+              points={itinerary.pointsOfInterest}
               distance={itinerary.distance || 0}
               onPointClick={handlePointClick}
             />

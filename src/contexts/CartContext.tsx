@@ -18,9 +18,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 
   return (
-    <CartContext.Provider value={{ cartItems, setCartItems, addToCart, removeFromCart }}>
+    <CartContext value={{ cartItems, setCartItems, addToCart, removeFromCart }}>
       {children}
-    </CartContext.Provider>
+    </CartContext>
   );
 };
 
