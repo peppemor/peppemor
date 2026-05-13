@@ -3,11 +3,8 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 export async function getUserOrders(_userId: string) {
   // TODO: implement backend endpoint /orders
   try {
-    const token = localStorage.getItem('auth_token') || '';
     const response = await fetch(`${API_URL}/orders`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      credentials: 'include',
     });
 
     if (!response.ok) {

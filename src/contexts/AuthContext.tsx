@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { User, Profile, UserRole } from '../types/index.js';
 
 interface AuthContextType {
@@ -9,11 +9,10 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   isAdmin: boolean;
-  token: string | null;
 
   // Metodi
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  logout: () => void;
+  logout: () => Promise<void>;
   signup: (data: { email: string; password: string; username: string; firstName: string; lastName: string }) => Promise<{ success: boolean; error?: string }>;
   refreshUserData: () => Promise<void>;
   updateProfile: (data: Partial<Profile>) => Promise<{ success: boolean; error?: string }>;
@@ -48,23 +47,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<Profile | null>(null);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [token, setToken] = useState<string | null>(() => {
-    // Recupera il token dal localStorage
-    return localStorage.getItem('auth_token');
-  });
 
-  const isAuthenticated = !!token && !!user;
+  const isAuthenticated = !!user;
   const isAdmin = userRole?.role === 'admin';
 
+  const clearSession = () => {
+    setUser(null);
+    setProfile(null);
+    setUserRole(null);
+  };
+
   /**
-   * Recupera i dati dell'utente dal server usando il token
+   * Recupera i dati dell'utente dal server usando il cookie HttpOnly
    */
-  const fetchUserData = async (authToken: string) => {
+  const fetchUserData = useCallback(async () => {
     try {
       const response = await fetch(`${API_URL}/auth/me`, {
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-        },
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -77,16 +76,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUserRole(data.userRole);
     } catch (error) {
       console.error('Error fetching user data:', error);
-      // Se c'è un errore, clearare il token
-      localStorage.removeItem('auth_token');
-      setToken(null);
-      setUser(null);
-      setProfile(null);
-      setUserRole(null);
+      clearSession();
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  /**
+   * Effetto: Al mount prova a ristabilire sessione dal cookie HttpOnly
+   */
+  useEffect(() => {
+    fetchUserData();
+  }, []);
 
   /**
    * Login
@@ -99,6 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
 
@@ -107,14 +109,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: false, error: error.error || 'Login failed' };
       }
 
-      const data = await response.json();
-      const newToken = data.token;
-
-      // Salva il token
-      localStorage.setItem('auth_token', newToken);
-      setToken(newToken);
-      setUser(data.user);
-      setProfile(normalizeProfile(data.profile));
+      await fetchUserData();
 
       return { success: true };
     } catch (error: any) {
@@ -141,6 +136,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(data),
       });
 
@@ -150,13 +146,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       const responseData = await response.json();
-      const newToken = responseData.token;
-
-      // Salva il token
-      localStorage.setItem('auth_token', newToken);
-      setToken(newToken);
       setUser(responseData.user);
       setProfile(normalizeProfile(responseData.profile));
+      await fetchUserData();
 
       return { success: true };
     } catch (error: any) {
@@ -167,31 +159,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   /**
-   * Logout
+   * Logout — invalida il cookie sul server e pulisce la sessione in memoria
    */
-  const logout = () => {
-    localStorage.removeItem('auth_token');
-    setToken(null);
-    setUser(null);
-    setProfile(null);
-    setUserRole(null);
+  const logout = async () => {
+    try {
+      await fetch(`${API_URL}/auth/signout`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch {
+      // Anche se la chiamata fallisce, puliamo comunque la sessione locale
+    }
+    clearSession();
   };
 
   /**
    * Aggiorna il profilo utente
    */
   const updateProfile = async (data: Partial<Profile> & { username?: string }): Promise<{ success: boolean; error?: string }> => {
-    if (!token) {
-      return { success: false, error: 'Not authenticated' };
-    }
-
     try {
       const response = await fetch(`${API_URL}/auth/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
         },
+        credentials: 'include',
         body: JSON.stringify(data),
       });
 
@@ -208,7 +200,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(updated.user);
       }
 
-      // Refresh completo per aggiornare anche role e dati coerenti
       await refreshUserData();
 
       return { success: true };
@@ -221,21 +212,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
    * Ricarica i dati dell'utente
    */
   const refreshUserData = async () => {
-    if (token) {
-      await fetchUserData(token);
-    }
+    await fetchUserData();
   };
-
-  /**
-   * Effetto: Se c'è un token al caricamento, recupera i dati dell'utente
-   */
-  useEffect(() => {
-    if (token) {
-      fetchUserData(token);
-    } else {
-      setIsLoading(false);
-    }
-  }, []);
 
   return (
     <AuthContext value={{
@@ -245,7 +223,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isLoading,
       isAuthenticated,
       isAdmin,
-      token,
       login,
       logout,
       signup,
@@ -265,3 +242,4 @@ export const useAuth = () => {
 
   return context;
 };
+

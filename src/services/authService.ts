@@ -24,34 +24,38 @@ export interface SignupPayload {
 
 export class AuthService {
   private prisma: PrismaClient;
-  private jwtSecret: string;
-  private jwtSecretKey: Uint8Array;
+  private accessSecretKey: Uint8Array;
 
   constructor(prismaClient: PrismaClient) {
     this.prisma = prismaClient;
-    this.jwtSecret = process.env.JWT_SECRET || 'your-secret-key';
-    this.jwtSecretKey = new TextEncoder().encode(this.jwtSecret);
+    const accessSecret = process.env.JWT_SECRET;
+
+    if (!accessSecret) {
+      throw new Error('JWT secret missing: set JWT_SECRET in environment');
+    }
+
+    this.accessSecretKey = new TextEncoder().encode(accessSecret);
   }
 
   /**
-   * Genera un JWT token per un utente
+   * Genera un token JWT di sessione (12 ore)
    */
   async generateToken(userId: string): Promise<string> {
-    return await new SignJWT({ userId })
+    return await new SignJWT({ userId, type: 'access' })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
-      .setExpirationTime('7d')
-      .sign(this.jwtSecretKey);
+      .setExpirationTime('12h')
+      .sign(this.accessSecretKey);
   }
 
   /**
-   * Verifica un JWT token
+   * Verifica un access token
    */
   async verifyToken(token: string): Promise<{ userId: string } | null> {
     try {
-      const { payload } = await jwtVerify(token, this.jwtSecretKey);
+      const { payload } = await jwtVerify(token, this.accessSecretKey);
 
-      if (typeof payload.userId !== 'string') {
+      if (typeof payload.userId !== 'string' || payload.type !== 'access') {
         return null;
       }
 
@@ -60,6 +64,7 @@ export class AuthService {
       return null;
     }
   }
+
 
   /**
    * Recupera il profilo dell'utente per ID

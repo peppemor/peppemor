@@ -17,7 +17,7 @@ const postJson = async (path: string, body: Record<string, unknown>) => {
 
 // Hook per operazioni con lo stato AuthContext
 export const useAuthActions = () => {
-  const { login, logout, signup, token } = useAuth();
+  const { login, logout, signup, isAuthenticated } = useAuth();
 
   return {
     // Login (supporta email o username)
@@ -28,7 +28,7 @@ export const useAuthActions = () => {
 
     // Logout
     signOut: async () => {
-      logout();
+      await logout();
     },
 
     // Registrazione (accetta sia snake_case che camelCase)
@@ -80,10 +80,10 @@ export const useAuthActions = () => {
 
     // Sessione (compatibilita)
     getUserSession: async () => {
-      if (!token) {
+      if (!isAuthenticated) {
         return { data: { session: { access_token: '' } }, error: 'Session is null' };
       }
-      return { data: { session: { access_token: token } }, error: null };
+      return { data: { session: { access_token: 'cookie-session' } }, error: null };
     },
   };
 };

@@ -4,8 +4,13 @@ import { useAuth } from '../contexts/AuthContext.js';
 import PathConstants from '../routes/pathConstants.js';
 import { Loader2 } from 'lucide-react';
 
-const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, isLoading } = useAuth();
+interface PrivateRouteProps {
+  children: React.ReactNode;
+  requireAdmin?: boolean;
+}
+
+const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, requireAdmin = false }) => {
+  const { user, isLoading, isAdmin } = useAuth();
 
   if (isLoading) {
     return (
@@ -15,7 +20,15 @@ const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     );
   }
 
-  return user ? <>{children}</> : <Navigate to={PathConstants.LOGIN} />;
+  if (!user) {
+    return <Navigate to={PathConstants.LOGIN} />;
+  }
+
+  if (requireAdmin && !isAdmin) {
+    return <Navigate to={PathConstants.ACCOUNT} />;
+  }
+
+  return <>{children}</>;
 };
 
 export default PrivateRoute;

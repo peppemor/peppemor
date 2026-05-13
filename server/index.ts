@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import 'dotenv/config';
 import authRoutes from './routes/auth.js';
 import itineraryRoutes from './routes/itineraries.js';
@@ -11,7 +12,16 @@ const app = express();
 const PORT = process.env.SERVER_PORT || 3001;
 
 // Middleware
-app.use(cors());
+const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:5173').split(',').map(o => o.trim());
+const corsOptions = {
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+app.use(cors(corsOptions));
+app.use(cookieParser());
 app.use(express.json());
 
 // Health check

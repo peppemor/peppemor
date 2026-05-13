@@ -91,4 +91,62 @@ export const itineraryController = {
       res.status(500).json({ error: error.message || 'Errore nel recupero dei punti di interesse' });
     }
   },
+
+  /**
+   * POST /api/itineraries
+   * Crea un nuovo itinerario (admin only)
+   */
+  async createItinerary(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { data, error } = await itineraryService.createItinerary(req.body || {});
+
+      if (error) {
+        return res.status(400).json({ error });
+      }
+
+      return res.status(201).json(data);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message || 'Errore durante la creazione dell\'itinerario' });
+    }
+  },
+
+  /**
+   * PUT /api/itineraries/:id
+   * Aggiorna un itinerario esistente (admin only)
+   */
+  async updateItinerary(req: AuthenticatedRequest, res: Response) {
+    try {
+      let { id } = req.params;
+      if (Array.isArray(id)) id = id[0];
+      const { data, error } = await itineraryService.updateItinerary(id, req.body || {});
+
+      if (error) {
+        return res.status(400).json({ error });
+      }
+
+      return res.json(data);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message || 'Errore durante l\'aggiornamento dell\'itinerario' });
+    }
+  },
+
+  /**
+   * DELETE /api/itineraries/:id
+   * Elimina un itinerario (admin only)
+   */
+  async deleteItinerary(req: AuthenticatedRequest, res: Response) {
+    try {
+      let { id } = req.params;
+      if (Array.isArray(id)) id = id[0];
+      const { error } = await itineraryService.deleteItinerary(id);
+
+      if (error) {
+        return res.status(400).json({ error });
+      }
+
+      return res.status(204).send();
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message || 'Errore durante l\'eliminazione dell\'itinerario' });
+    }
+  },
 };

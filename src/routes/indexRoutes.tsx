@@ -47,7 +47,7 @@ const routes = [
     {
       path: PathConstants.ITINERARY_ADMIN,
       element: (
-        <PrivateRoute>
+        <PrivateRoute requireAdmin>
           <ItinerariesAdmin />
         </PrivateRoute>
       ),

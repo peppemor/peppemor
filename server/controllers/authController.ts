@@ -5,6 +5,15 @@ import { AuthenticatedRequest } from '../middleware/auth.js';
 
 const authService = new AuthService(prisma);
 
+const AUTH_COOKIE_NAME = 'auth_token';
+const AUTH_COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict' as const,
+  maxAge: 12 * 60 * 60 * 1000, // 12 ore in ms
+  path: '/api',
+};
+
 const getBaseUrl = (req: Request): string => {
   const explicit = process.env.API_PUBLIC_URL?.trim();
   if (explicit) {
@@ -60,10 +69,11 @@ export const authController = {
         return res.status(400).json({ error: result.error });
       }
 
+      res.cookie(AUTH_COOKIE_NAME, result.token!, AUTH_COOKIE_OPTIONS);
+
       res.status(201).json({
         user: result.user,
         profile: result.profile,
-        token: result.token,
       });
     } catch (error: any) {
       res.status(500).json({ error: error.message || 'Errore durante la registrazione' });
@@ -88,10 +98,11 @@ export const authController = {
         return res.status(401).json({ error: result.error });
       }
 
+      res.cookie(AUTH_COOKIE_NAME, result.token!, AUTH_COOKIE_OPTIONS);
+
       res.json({
         user: result.user,
         profile: result.profile,
-        token: result.token,
       });
     } catch (error: any) {
       res.status(500).json({ error: error.message || 'Errore durante il login' });
@@ -238,5 +249,14 @@ export const authController = {
       console.error('Upload avatar error:', error);
       return res.status(500).json({ error: error.message || 'Avatar upload failed' });
     }
+  },
+
+  /**
+   * POST /api/auth/signout
+   * Rimuove il cookie di autenticazione
+   */
+  async signout(_req: Request, res: Response) {
+    res.clearCookie(AUTH_COOKIE_NAME, { path: '/api' });
+    return res.json({ success: true });
   },
 };

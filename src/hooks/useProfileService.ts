@@ -15,13 +15,13 @@ const normalizeAvatarUrl = (avatarUrl?: string | null): string | null | undefine
   }
 };
 
-const putJson = async (path: string, token: string, body: Record<string, unknown>) => {
+const putJson = async (path: string, body: Record<string, unknown>) => {
   const response = await fetch(`${API_URL}${path}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
     },
+    credentials: 'include',
     body: JSON.stringify(body),
   });
 
@@ -30,15 +30,12 @@ const putJson = async (path: string, token: string, body: Record<string, unknown
 };
 
 export const useProfileActions = () => {
-  const { refreshUserData, token } = useAuth();
+  const { refreshUserData } = useAuth();
 
   return {
     // Operazioni che richiedono refresh automatico del contesto
     updateAvatar: async (_userId: string, avatarUrl: string) => {
-      if (!token) {
-        return { success: false, error: 'Not authenticated' };
-      }
-      const { ok, data } = await putJson('/auth/profile', token, { avatarUrl });
+      const { ok, data } = await putJson('/auth/profile', { avatarUrl });
       if (!ok) {
         return { success: false, error: data?.error || 'Failed to update avatar' };
       }
@@ -47,10 +44,7 @@ export const useProfileActions = () => {
     },
 
     updateProfile: async (_userId: string, updates: Partial<Profile> & { username?: string }) => {
-      if (!token) {
-        return { success: false, error: 'Not authenticated' };
-      }
-      const { ok, data } = await putJson('/auth/profile', token, updates as Record<string, unknown>);
+      const { ok, data } = await putJson('/auth/profile', updates as Record<string, unknown>);
       if (!ok) {
         return { success: false, error: data?.error || 'Failed to update profile' };
       }
@@ -61,18 +55,12 @@ export const useProfileActions = () => {
     // Operazioni non implementate (placeholder)
     getProfileById: async () => ({ data: null, error: 'Not implemented' }),
     uploadAvatar: async (file: File, _userId: string) => {
-      if (!token) {
-        return { data: null, error: 'Not authenticated' };
-      }
-
       const formData = new FormData();
       formData.append('avatar', file);
 
       const response = await fetch(`${API_URL}/auth/avatar`, {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: 'include',
         body: formData,
       });
 
@@ -85,10 +73,7 @@ export const useProfileActions = () => {
       return { data: normalizeAvatarUrl(data?.avatarUrl) || null, error: null };
     },
     deleteUserAvatar: async (_userId: string) => {
-      if (!token) {
-        return { success: false, error: 'Not authenticated' };
-      }
-      const { ok, data } = await putJson('/auth/profile', token, { avatarUrl: null });
+      const { ok, data } = await putJson('/auth/profile', { avatarUrl: null });
       if (!ok) {
         return { success: false, error: data?.error || 'Failed to delete avatar' };
       }

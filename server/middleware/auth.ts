@@ -7,17 +7,22 @@ export interface AuthenticatedRequest extends Request {
 
 export const authMiddleware = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
+    const cookieToken = (req as any).cookies?.auth_token as string | undefined;
+    const bearerToken = req.headers.authorization?.split(' ')[1];
+    const token = cookieToken || bearerToken;
 
     if (!token) {
       return res.status(401).json({ error: 'Token non fornito' });
     }
 
-    const jwtSecret = process.env.JWT_SECRET || 'your-secret-key';
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      return res.status(500).json({ error: 'JWT secret non configurato' });
+    }
     const secretKey = new TextEncoder().encode(jwtSecret);
     const { payload } = await jwtVerify(token, secretKey);
 
-    if (typeof payload.userId !== 'string') {
+    if (typeof payload.userId !== 'string' || payload.type !== 'access') {
       return res.status(401).json({ error: 'Token non valido' });
     }
 

@@ -22,6 +22,7 @@ router.post('/signup', authController.signup);
 router.post('/signin', authController.signin);
 router.post('/verify-username', authController.verifyUsername);
 router.post('/verify-email', authController.verifyEmail);
+router.post('/signout', authController.signout);
 
 // Rotte protette (auth required)
 router.get('/profile', authMiddleware, authController.getProfile);

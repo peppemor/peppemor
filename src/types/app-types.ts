@@ -11,8 +11,7 @@
  * - Definiscono interfacce per componenti React e Context
  * - Modellano le entità di business dell'app
  * 
- * MIGRAZIONE DA SUPABASE A PRISMA:
- * I tipi sono stati aggiornati per usare Prisma invece di Supabase
+ * Tipi aggiornati per l'architettura Prisma + PostgreSQL.
  */
 
 // =====================================================================
