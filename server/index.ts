@@ -24,6 +24,33 @@ app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(express.json());
 
+
+// Welcome page con elenco API
+app.get('/', (req, res) => {
+  res.type('html').send(`
+    <h1>Benvenuto nell'API Server Peppemor</h1>
+    <p>Server attivo su <b>http://localhost:${PORT}</b></p>
+    <h2>API disponibili:</h2>
+    <ul>
+      <li><b>GET</b> /api/itineraries</li>
+      <li><b>GET</b> /api/itineraries/:id</li>
+      <li><b>GET</b> /api/itineraries/:id/with-pois</li>
+      <li><b>GET</b> /api/itineraries/:id/pois</li>
+      <li><b>POST</b> /api/itineraries <i>(admin)</i></li>
+      <li><b>PUT</b> /api/itineraries/:id <i>(admin)</i></li>
+      <li><b>DELETE</b> /api/itineraries/:id <i>(admin)</i></li>
+      <li><b>POST</b> /api/auth/login</li>
+      <li><b>POST</b> /api/auth/signup</li>
+      <li><b>POST</b> /api/auth/logout</li>
+      <li><b>GET</b> /api/auth/me</li>
+      <li><b>POST</b> /api/contact</li>
+      <li><b>GET</b> /api/users <i>(admin)</i></li>
+      <li><b>GET</b> /health</li>
+    </ul>
+    <p>Per accedere alle API protette occorre autenticarsi come admin.</p>
+  `);
+});
+
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Server is running' });
