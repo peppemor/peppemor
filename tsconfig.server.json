@@ -16,7 +16,6 @@
   "include": [
     "server/**/*.ts",
     "src/lib/prisma.ts",
-    "src/services/authService.ts",
-    "src/services/itineraryService.ts"
+    "server/services/**/*.ts"
   ]
 }

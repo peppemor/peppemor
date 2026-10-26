@@ -1,6 +1,5 @@
 import { PrismaClient, Itinerary, PointOfInterest } from '@prisma/client';
-
-export type ItineraryWithPOIs = Itinerary & { pointsOfInterest: PointOfInterest[] };
+import type { ItineraryWithPOIs } from '../../src/types/itinerary.js';
 
 export class ItineraryService {
   private prisma: PrismaClient;
@@ -145,4 +144,3 @@ export class ItineraryService {
     }
   }
 }
-

@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { ItineraryService } from '../../src/services/itineraryService.js';
+import { ItineraryService } from '../services/itineraryService.js';
 import prisma from '../../src/lib/prisma.js';
 import { AuthenticatedRequest } from '../middleware/auth.js';
 

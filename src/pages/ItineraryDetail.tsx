@@ -5,9 +5,7 @@ import { useItineraryActions } from '../hooks/index.js';
 import ItineraryMapView from '../components/itinerary/ItineraryMapView.js';
 import PointOfInterestCard from '../components/itinerary/PointOfInterestCard.js';
 import PathConstants from '../routes/pathConstants.js';
-import type { Itinerary, PointOfInterest } from '../types/index.js';
-
-type ItineraryWithPOIs = Itinerary & { pointsOfInterest: PointOfInterest[] };
+import type { ItineraryWithPOIs } from '../types/itinerary.js';
 
 const ItineraryDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();

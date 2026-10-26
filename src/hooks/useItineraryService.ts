@@ -1,5 +1,5 @@
 import type { Itinerary, PointOfInterest } from '../types/index.js';
-import type { ItineraryWithPOIs } from '../services/itineraryService.js';
+import type { ItineraryWithPOIs } from '../types/itinerary.js';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 

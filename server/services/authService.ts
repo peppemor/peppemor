@@ -1,6 +1,7 @@
 import { PrismaClient, User, Profile } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { SignJWT, jwtVerify } from 'jose';
+import { getAuthSecret } from '../authSecret.js';
 
 export interface AuthPayload {
   user: User | null;
@@ -28,13 +29,7 @@ export class AuthService {
 
   constructor(prismaClient: PrismaClient) {
     this.prisma = prismaClient;
-    const accessSecret = process.env.JWT_SECRET;
-
-    if (!accessSecret) {
-      throw new Error('JWT secret missing: set JWT_SECRET in environment');
-    }
-
-    this.accessSecretKey = new TextEncoder().encode(accessSecret);
+    this.accessSecretKey = new TextEncoder().encode(getAuthSecret());
   }
 
   /**

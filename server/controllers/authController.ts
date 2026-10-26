@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { AuthService, type SignupPayload } from '../../src/services/authService.js';
+import { AuthService, type SignupPayload } from '../services/authService.js';
 import prisma from '../../src/lib/prisma.js';
 import { AuthenticatedRequest } from '../middleware/auth.js';
 
